@@ -25,6 +25,7 @@ Thumbs.db
 
 .vscode/*
 !.vscode/settings.json
+!.vscode/extensions.json
 
 # Node (si luego se usa)
 node_modules/
