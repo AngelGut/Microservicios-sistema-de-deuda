@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -29,6 +30,15 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
     private final ObjectMapper objectMapper;
+
+    /**
+     * Evita bloquear preflight CORS (OPTIONS), ya que no envía token.
+     * Si se bloquea, el frontend ve errores JSON de autenticación antes del request real.
+     */
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        return HttpMethod.OPTIONS.matches(request.getMethod());
+    }
 
     /**
      * Intercepta cada request y valida el JWT.
