@@ -1,0 +1,50 @@
+@RestController
+@RequestMapping("/debtors")
+public class DebtorController {
+
+    private final DebtorService service;
+
+    public DebtorController(DebtorService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    public List<Debtor> getAllDebtors() {
+        return service.findAll();
+    }
+
+}
+
+GET /debtors
+
+
+
+
+
+ @GetMapping("/{id}")
+public Debtor getDebtorById(@PathVariable Long id) {
+    return service.findById(id);
+}
+
+GET /debtors/{id}
+
+
+@PostMapping
+public Debtor createDebtor(@RequestBody DebtorRequest request) {
+    return service.create(request);
+}
+
+POST /debtors
+{
+  "name": "Juan Perez",
+  "document": "00112345678",
+  "email": "juan@email.com"
+}
+
+@PutMapping("/{id}")
+public Debtor updateDebtor(@PathVariable Long id,
+                           @RequestBody DebtorRequest request) {
+    return service.update(id, request);
+}
+
+PUT /debtors/{id}
