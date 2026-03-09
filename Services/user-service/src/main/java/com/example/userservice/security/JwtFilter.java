@@ -23,6 +23,16 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        if (("POST".equalsIgnoreCase(method) && "/api/users".equals(path))
+                || ("POST".equalsIgnoreCase(method) && "/api/users/login".equals(path))
+                || ("POST".equalsIgnoreCase(method) && "/api/users/internal/verify-credentials".equals(path))) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String traceId = request.getHeader(TraceIdUtil.TRACE_HEADER);
         if (traceId != null) {
             TraceIdUtil.setTraceId(traceId);
