@@ -15,6 +15,7 @@
         <module>Services/auth-service</module>
         <module>Services/debt-service</module>
         <module>Services/debtor-service</module>
+        <module>Services/payment-service</module>
         <module>Services/web-ui</module>
     </modules>
 </project>
