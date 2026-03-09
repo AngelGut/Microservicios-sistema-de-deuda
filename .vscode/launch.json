@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-DebtorServiceApplication<debtor-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/Services/debtor-service",
+      "mainClass": "com.debtmanager.debtorservice.DebtorServiceApplication",
+      "projectName": "debtor-service",
+      "console": "integratedTerminal",
+      "args": ""
+    }
+  ]
+}
