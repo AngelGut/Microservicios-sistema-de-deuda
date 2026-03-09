@@ -16,6 +16,7 @@ Ejemplo Root Directory por servicio:
 - services/fx-service
 - services/notification-service
 - services/ai-risk-service
+- services/user-service
 - services/web-ui
 
 ## Variables de entorno (por servicio)
