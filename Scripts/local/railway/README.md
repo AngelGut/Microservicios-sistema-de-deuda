@@ -27,6 +27,7 @@ Cada servicio puede necesitar:
 - MAIL_API_KEY / OWNER_EMAIL (notification)
 - GROQ_API_KEY (ai-risk)
 - FX_BASE_URL (fx-service)
+- AUTH_SERVICE_URL / DEBTOR_SERVICE_URL / DEBT_SERVICE_URL / PAYMENT_SERVICE_URL / FX_SERVICE_URL / NOTIFICATION_SERVICE_URL / AI_RISK_SERVICE_URL / USER_SERVICE_URL / WEB_UI_URL (api-gateway)
 
 ## Comandos
 Railway detecta Maven por defecto. Si hay que forzar:
