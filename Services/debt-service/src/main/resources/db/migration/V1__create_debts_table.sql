@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS debts (
+    id TEXT PRIMARY KEY,
+    debtor_id TEXT NOT NULL,
+    description VARCHAR(300) NOT NULL,
+    original_amount DECIMAL(15,2) NOT NULL,
+    current_balance DECIMAL(15,2) NOT NULL,
+    currency VARCHAR(3) NOT NULL DEFAULT 'DOP',
+    status VARCHAR(10) NOT NULL DEFAULT 'ACTIVA',
+    due_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
