@@ -19,6 +19,7 @@ public class AuthClient {
         this.gatewayUrl = gatewayUrl;
     }
 
+    // ── Login ──────────────────────────────────────────────────────────────────
     public String login(String email, String password) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -36,5 +37,26 @@ public class AuthClient {
 
         Map<?, ?> data = (Map<?, ?>) response.getBody().get("data");
         return (String) data.get("token");
+    }
+
+    // ── Registro ───────────────────────────────────────────────────────────────
+    // Endpoint: POST /api/v1/auth/register (user-service)
+    // Body: { fullName, username, email, password }
+    public void register(String fullName, String username, String email, String password) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, String> body = Map.of(
+                "fullName", fullName,
+                "username", username,
+                "email", email,
+                "password", password);
+
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+
+        restTemplate.postForEntity(
+                gatewayUrl + "/api/v1/auth/register",
+                request,
+                Map.class);
     }
 }
