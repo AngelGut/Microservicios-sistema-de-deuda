@@ -22,11 +22,12 @@ import java.util.List;
 /**
  * Controlador REST del microservicio de pagos.
  *
- * <p>Principio SRP: solo delega al servicio y construye las respuestas HTTP.
+ * <p>
+ * Principio SRP: solo delega al servicio y construye las respuestas HTTP.
  * No contiene lógica de negocio.
  */
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("/api/v1/payments")
 @Tag(name = "Payments", description = "Operaciones de gestión de pagos")
 @SecurityRequirement(name = "bearerAuth")
 public class PaymentController {
@@ -40,11 +41,9 @@ public class PaymentController {
     // ── POST /payments ───────────────────────────────────────
 
     @PostMapping
-    @Operation(
-            summary = "Registrar un pago",
-            description = "Registra un nuevo pago para una deuda. Valida la existencia de la deuda, " +
-                          "que no esté pagada y que el monto no supere el saldo pendiente."
-    )
+    @Operation(summary = "Registrar un pago", description = "Registra un nuevo pago para una deuda. Valida la existencia de la deuda, "
+            +
+            "que no esté pagada y que el monto no supere el saldo pendiente.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Pago registrado exitosamente"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validación fallida o monto inválido"),
@@ -88,10 +87,7 @@ public class PaymentController {
     // ── GET /payments/by-debt/{debtId} ───────────────────────
 
     @GetMapping("/by-debt/{debtId}")
-    @Operation(
-            summary = "Historial de pagos por deuda",
-            description = "Devuelve todos los pagos de una deuda específica, ordenados por fecha descendente."
-    )
+    @Operation(summary = "Historial de pagos por deuda", description = "Devuelve todos los pagos de una deuda específica, ordenados por fecha descendente.")
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getPaymentsByDebt(
             @Parameter(description = "ID de la deuda") @PathVariable Long debtId) {
 

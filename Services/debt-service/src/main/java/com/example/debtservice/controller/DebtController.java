@@ -21,7 +21,7 @@ import java.util.List;
  * Todos los endpoints requieren validación JWT excepto los internos.
  */
 @RestController
-@RequestMapping("/debts")
+@RequestMapping("/api/v1/debts")
 @RequiredArgsConstructor
 public class DebtController {
 

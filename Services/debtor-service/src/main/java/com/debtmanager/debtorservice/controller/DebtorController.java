@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/debtors")
+@RequestMapping("/api/v1/debtors")
 @RequiredArgsConstructor
 public class DebtorController {
 
@@ -35,7 +35,7 @@ public class DebtorController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Debtor> updateDebtor(@PathVariable Long id,
-                                               @Valid @RequestBody DebtorRequest request) {
+            @Valid @RequestBody DebtorRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 }
