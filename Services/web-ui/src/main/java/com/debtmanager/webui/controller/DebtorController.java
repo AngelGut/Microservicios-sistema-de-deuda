@@ -1,6 +1,7 @@
 package com.debtmanager.webui.controller;
 
 import com.debtmanager.webui.dto.request.DebtorRequest;
+import com.debtmanager.webui.service.DebtService;
 import com.debtmanager.webui.service.DebtorService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -14,9 +15,11 @@ import java.util.ArrayList;
 public class DebtorController {
 
     private final DebtorService debtorService;
+    private final DebtService debtService;
 
-    public DebtorController(DebtorService debtorService) {
+    public DebtorController(DebtorService debtorService, DebtService debtService) {
         this.debtorService = debtorService;
+        this.debtService = debtService;
     }
 
     @GetMapping
@@ -26,7 +29,7 @@ public class DebtorController {
             model.addAttribute("debtors", debtorService.getAll(token));
         } catch (Exception e) {
             model.addAttribute("debtors", new ArrayList<>());
-            model.addAttribute("error", "Servicio no disponible. Los datos aparecerán cuando el servicio esté activo.");
+            model.addAttribute("error", "Servicio no disponible.");
         }
         return "debtors/list";
     }
@@ -38,9 +41,14 @@ public class DebtorController {
         String token = (String) session.getAttribute("jwt");
         try {
             model.addAttribute("debtor", debtorService.getById(id, token));
-            model.addAttribute("debts", new ArrayList<>());
         } catch (Exception e) {
             return "redirect:/debtors";
+        }
+        // Buscar deudas del deudor en debt-service
+        try {
+            model.addAttribute("debts", debtService.getByDebtorId(id, token));
+        } catch (Exception e) {
+            model.addAttribute("debts", new ArrayList<>());
         }
         return "debtors/detail";
     }
@@ -57,15 +65,14 @@ public class DebtorController {
             @RequestParam String documentNumber,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String phone,
-            HttpSession session,
-            Model model) {
+            HttpSession session) {
         try {
             String token = (String) session.getAttribute("jwt");
             DebtorRequest request = new DebtorRequest(name, type, documentType, documentNumber, email, phone);
             debtorService.create(request, token);
             return "redirect:/debtors";
         } catch (Exception e) {
-            return "redirect:/dashboard?error=true";
+            return "redirect:/debtors?error=true";
         }
     }
 }

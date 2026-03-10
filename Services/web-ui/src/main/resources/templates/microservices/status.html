@@ -348,7 +348,7 @@
             <polyline points="12 8 12 12 14 14" /></svg
           >Microservicios
         </a>
-        <a href="#" class="nav-item">
+        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -489,7 +489,7 @@
           </div>
           <div class="service-tags">
             <a
-              href="http://localhost:8080/swagger-ui.html"
+              href="https://gateway-production-a233.up.railway.app/swagger-ui.html"
               target="_blank"
               class="tag tag-swagger"
             >
@@ -507,7 +507,7 @@
               Swagger
             </a>
             <a
-              href="http://localhost:8080/actuator/health"
+              href="https://gateway-production-a233.up.railway.app/actuator/health"
               target="_blank"
               class="tag tag-actuator"
             >
@@ -548,7 +548,7 @@
           <div class="service-desc">JWT HS256 · BCrypt · Roles ADMIN/USER</div>
           <div class="service-tags">
             <a
-              href="http://localhost:8081/swagger-ui.html"
+              href="https://auth-service-production-8f2a.up.railway.app/swagger-ui.html"
               target="_blank"
               class="tag tag-swagger"
             >
@@ -566,7 +566,7 @@
               Swagger
             </a>
             <a
-              href="http://localhost:8081/actuator/health"
+              href="https://auth-service-production-8f2a.up.railway.app/actuator/health"
               target="_blank"
               class="tag tag-actuator"
             >
@@ -611,7 +611,7 @@
           </div>
           <div class="service-tags">
             <a
-              href="http://localhost:8082/swagger-ui.html"
+              href="https://debtor-service-production.up.railway.app/swagger-ui.html"
               target="_blank"
               class="tag tag-swagger"
             >
@@ -629,7 +629,7 @@
               Swagger
             </a>
             <a
-              href="http://localhost:8082/actuator/health"
+              href="https://debtor-service-production.up.railway.app/actuator/health"
               target="_blank"
               class="tag tag-actuator"
             >
@@ -672,7 +672,7 @@
           </div>
           <div class="service-tags">
             <a
-              href="http://localhost:8083/swagger-ui.html"
+              href="https://debt-service-production.up.railway.app/swagger-ui.html"
               target="_blank"
               class="tag tag-swagger"
             >
@@ -690,7 +690,7 @@
               Swagger
             </a>
             <a
-              href="http://localhost:8083/actuator/health"
+              href="https://debt-service-production.up.railway.app/actuator/health"
               target="_blank"
               class="tag tag-actuator"
             >
@@ -735,7 +735,7 @@
           </div>
           <div class="service-tags">
             <a
-              href="http://localhost:8084/swagger-ui.html"
+              href="https://payment-service-production.up.railway.app/swagger-ui.html"
               target="_blank"
               class="tag tag-swagger"
             >
@@ -753,7 +753,7 @@
               Swagger
             </a>
             <a
-              href="http://localhost:8084/actuator/health"
+              href="https://payment-service-production.up.railway.app/actuator/health"
               target="_blank"
               class="tag tag-actuator"
             >
@@ -809,7 +809,7 @@
           </div>
           <div class="service-tags">
             <a
-              href="http://localhost:8085/swagger-ui.html"
+              href="https://fx-service-production.up.railway.app/swagger-ui.html"
               target="_blank"
               class="tag tag-swagger"
             >
@@ -827,7 +827,7 @@
               Swagger
             </a>
             <a
-              href="http://localhost:8085/actuator/health"
+              href="https://fx-service-production.up.railway.app/actuator/health"
               target="_blank"
               class="tag tag-actuator"
             >
@@ -886,7 +886,7 @@
           </div>
           <div class="service-tags">
             <a
-              href="http://localhost:8086/swagger-ui.html"
+              href="https://notification-service-production.up.railway.app/swagger-ui.html"
               target="_blank"
               class="tag tag-swagger"
             >
@@ -904,7 +904,7 @@
               Swagger
             </a>
             <a
-              href="http://localhost:8086/actuator/health"
+              href="https://notification-service-production.up.railway.app/actuator/health"
               target="_blank"
               class="tag tag-actuator"
             >
@@ -947,7 +947,7 @@
           </div>
           <div class="service-tags">
             <a
-              href="http://localhost:8087/swagger-ui.html"
+              href="https://ai-risk-service-production.up.railway.app/swagger-ui.html"
               target="_blank"
               class="tag tag-swagger"
             >
@@ -965,7 +965,7 @@
               Swagger
             </a>
             <a
-              href="http://localhost:8087/actuator/health"
+              href="https://ai-risk-service-production.up.railway.app/actuator/health"
               target="_blank"
               class="tag tag-actuator"
             >
@@ -1021,49 +1021,49 @@
           key: "gateway",
           name: "api-gateway",
           port: 8080,
-          url: /*[[${gatewayHealthUrl}]]*/ "http://localhost:8080/actuator/health",
+          url: /*[[${gatewayHealthUrl}]]*/ "https://gateway-production-a233.up.railway.app/actuator/health",
         },
         {
           key: "auth",
           name: "auth-service",
           port: 8081,
-          url: /*[[${authHealthUrl}]]*/ "http://localhost:8081/actuator/health",
+          url: /*[[${authHealthUrl}]]*/ "https://auth-service-production-8f2a.up.railway.app/actuator/health",
         },
         {
           key: "debtor",
           name: "debtor-service",
           port: 8082,
-          url: /*[[${debtorHealthUrl}]]*/ "http://localhost:8082/actuator/health",
+          url: /*[[${debtorHealthUrl}]]*/ "https://debtor-service-production.up.railway.app/actuator/health",
         },
         {
           key: "debt",
           name: "debt-service",
           port: 8083,
-          url: /*[[${debtHealthUrl}]]*/ "http://localhost:8083/actuator/health",
+          url: /*[[${debtHealthUrl}]]*/ "https://debt-service-production.up.railway.app/actuator/health",
         },
         {
           key: "payment",
           name: "payment-service",
           port: 8084,
-          url: /*[[${paymentHealthUrl}]]*/ "http://localhost:8084/actuator/health",
+          url: /*[[${paymentHealthUrl}]]*/ "https://payment-service-production.up.railway.app/actuator/health",
         },
         {
           key: "fx",
           name: "fx-service",
           port: 8085,
-          url: /*[[${fxHealthUrl}]]*/ "http://localhost:8085/actuator/health",
+          url: /*[[${fxHealthUrl}]]*/ "https://fx-service-production.up.railway.app/actuator/health",
         },
         {
           key: "notification",
           name: "notification-service",
           port: 8086,
-          url: "http://localhost:8086/actuator/health",
+          url: "https://notification-service-production.up.railway.app/actuator/health",
         },
         {
           key: "ai",
           name: "ai-risk-service",
           port: 8087,
-          url: /*[[${aiRiskHealthUrl}]]*/ "http://localhost:8087/actuator/health",
+          url: /*[[${aiRiskHealthUrl}]]*/ "https://ai-risk-service-production.up.railway.app/actuator/health",
         },
       ];
 

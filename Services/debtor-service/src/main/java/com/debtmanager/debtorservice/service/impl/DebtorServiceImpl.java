@@ -35,6 +35,7 @@ public class DebtorServiceImpl implements DebtorService {
                 .document(request.document())
                 .email(request.email())
                 .type(request.type())
+                .phone(request.phone())
                 .build();
         return repository.save(debtor);
     }
@@ -50,6 +51,8 @@ public class DebtorServiceImpl implements DebtorService {
             debtor.setEmail(request.email());
         if (request.type() != null)
             debtor.setType(request.type());
+        if (request.phone() != null)
+            debtor.setPhone(request.phone());
         return repository.save(debtor);
     }
 }
