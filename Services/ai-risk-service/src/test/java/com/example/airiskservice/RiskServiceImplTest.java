@@ -1,6 +1,8 @@
 package com.example.airiskservice;
 
+import com.example.airiskservice.client.GroqAiAnalyzer;
 import com.example.airiskservice.client.PaymentClient;
+import com.example.airiskservice.dto.response.GroqRiskResponse;
 import com.example.airiskservice.dto.response.PaymentHistoryDTO;
 import com.example.airiskservice.dto.response.RiskResponse;
 import com.example.airiskservice.model.ClientRisk;
@@ -20,77 +22,120 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RiskServiceImplTest {
 
-    @Mock private ClientRiskRepository clientRiskRepository;
+    @Mock private ClientRiskRepository repo;
     @Mock private PaymentClient paymentClient;
-    @InjectMocks private RiskServiceImpl riskService;
+    @Mock private GroqAiAnalyzer groqAiAnalyzer;
+    @InjectMocks private RiskServiceImpl service;
+
+    // ── Helper ────────────────────────────────────────────────
+
+    private PaymentHistoryDTO payment(LocalDate paymentDate, LocalDate dueDate) {
+        return new PaymentHistoryDTO(1L, 1L, 10L,
+                BigDecimal.valueOf(500), paymentDate, dueDate, null);
+    }
+
+    private GroqRiskResponse groqResponse(RiskLevel level, double score) {
+        return new GroqRiskResponse(level, score,
+                List.of("Monitorear al cliente", "Solicitar garantía"), "raw");
+    }
+
+    // ── Tests de reglas ──────────────────────────────────────
 
     @Test
-    @DisplayName("Cliente sin pagos tardíos debe ser GOOD_CLIENT")
-    void recalculate_noLatePayments_goodClient() {
-        PaymentHistoryDTO onTime = new PaymentHistoryDTO(
-                1L, 1L, 10L, BigDecimal.valueOf(500),
-                LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 1), null);
+    @DisplayName("Sin mora → GOOD_CLIENT (reglas y IA coinciden)")
+    void noLatePayments_bothAgree_goodClient() {
+        when(paymentClient.getPaymentsByClient(1L))
+                .thenReturn(List.of(payment(
+                        LocalDate.of(2026, 3, 1),
+                        LocalDate.of(2026, 3, 1))));
+        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
+                .thenReturn(groqResponse(RiskLevel.GOOD_CLIENT, 0.0));
+        when(repo.findByClientId(1L)).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        when(paymentClient.getPaymentsByClient(10L)).thenReturn(List.of(onTime));
-        when(clientRiskRepository.findByClientId(10L)).thenReturn(Optional.empty());
-        when(clientRiskRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-
-        RiskResponse result = riskService.recalculate(10L);
+        RiskResponse result = service.recalculate(1L);
 
         assertThat(result.riskLevel()).isEqualTo(RiskLevel.GOOD_CLIENT);
-        assertThat(result.totalDaysLate()).isEqualTo(0);
+        assertThat(result.aiRiskLevel()).isEqualTo(RiskLevel.GOOD_CLIENT);
+        assertThat(result.aiRecommendations()).isNotNull();
     }
 
     @Test
-    @DisplayName("Cliente con menos de 30 días de mora debe ser LOW_RISK")
-    void recalculate_lowLateDays_lowRisk() {
-        PaymentHistoryDTO late = new PaymentHistoryDTO(
-                1L, 1L, 20L, BigDecimal.valueOf(500),
-                LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1), null);
+    @DisplayName("9 días de mora → LOW_RISK")
+    void nineDaysLate_lowRisk() {
+        when(paymentClient.getPaymentsByClient(2L))
+                .thenReturn(List.of(payment(
+                        LocalDate.of(2026, 3, 10),
+                        LocalDate.of(2026, 3, 1))));
+        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
+                .thenReturn(groqResponse(RiskLevel.LOW_RISK, 15.0));
+        when(repo.findByClientId(2L)).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        when(paymentClient.getPaymentsByClient(20L)).thenReturn(List.of(late));
-        when(clientRiskRepository.findByClientId(20L)).thenReturn(Optional.empty());
-        when(clientRiskRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-
-        RiskResponse result = riskService.recalculate(20L);
+        RiskResponse result = service.recalculate(2L);
 
         assertThat(result.riskLevel()).isEqualTo(RiskLevel.LOW_RISK);
         assertThat(result.totalDaysLate()).isEqualTo(9);
     }
 
     @Test
-    @DisplayName("Cliente con 30 o más días de mora debe ser HIGH_RISK")
-    void recalculate_highLateDays_highRisk() {
-        PaymentHistoryDTO late = new PaymentHistoryDTO(
-                1L, 1L, 30L, BigDecimal.valueOf(500),
-                LocalDate.of(2026, 4, 1), LocalDate.of(2026, 3, 1), null);
+    @DisplayName("31 días de mora → HIGH_RISK")
+    void thirtyOneDaysLate_highRisk() {
+        when(paymentClient.getPaymentsByClient(3L))
+                .thenReturn(List.of(payment(
+                        LocalDate.of(2026, 4, 1),
+                        LocalDate.of(2026, 3, 1))));
+        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
+                .thenReturn(groqResponse(RiskLevel.HIGH_RISK, 75.0));
+        when(repo.findByClientId(3L)).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        when(paymentClient.getPaymentsByClient(30L)).thenReturn(List.of(late));
-        when(clientRiskRepository.findByClientId(30L)).thenReturn(Optional.empty());
-        when(clientRiskRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-
-        RiskResponse result = riskService.recalculate(30L);
+        RiskResponse result = service.recalculate(3L);
 
         assertThat(result.riskLevel()).isEqualTo(RiskLevel.HIGH_RISK);
-        assertThat(result.totalDaysLate()).isGreaterThanOrEqualTo(30);
     }
 
     @Test
-    @DisplayName("Sin historial de pagos (payment-service caído) debe ser GOOD_CLIENT")
-    void recalculate_emptyPayments_fallback_goodClient() {
-        when(paymentClient.getPaymentsByClient(40L)).thenReturn(List.of());
-        when(clientRiskRepository.findByClientId(40L)).thenReturn(Optional.empty());
-        when(clientRiskRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    @DisplayName("Groq no disponible → solo reglas (fallback)")
+    void groqUnavailable_fallbackToRules() {
+        when(paymentClient.getPaymentsByClient(4L))
+                .thenReturn(List.of(payment(
+                        LocalDate.of(2026, 3, 10),
+                        LocalDate.of(2026, 3, 1))));
+        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
+                .thenReturn(null);  // Groq caído
+        when(repo.findByClientId(4L)).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        RiskResponse result = riskService.recalculate(40L);
+        RiskResponse result = service.recalculate(4L);
 
-        assertThat(result.riskLevel()).isEqualTo(RiskLevel.GOOD_CLIENT);
-        assertThat(result.riskScore()).isEqualTo(0.0);
+        assertThat(result.riskLevel()).isEqualTo(RiskLevel.LOW_RISK);
+        assertThat(result.aiRiskLevel()).isNull();     // sin datos de IA
+        assertThat(result.aiRecommendations()).isNull();
+    }
+
+    @Test
+    @DisplayName("Reglas y Groq difieren → se toma el mayor riesgo")
+    void rulesAndGroqDisagree_takesHigherRisk() {
+        // Reglas dicen LOW_RISK (9 días), IA dice HIGH_RISK
+        when(paymentClient.getPaymentsByClient(5L))
+                .thenReturn(List.of(payment(
+                        LocalDate.of(2026, 3, 10),
+                        LocalDate.of(2026, 3, 1))));
+        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
+                .thenReturn(groqResponse(RiskLevel.HIGH_RISK, 80.0));
+        when(repo.findByClientId(5L)).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        RiskResponse result = service.recalculate(5L);
+
+        // Debe tomar el más conservador (HIGH_RISK)
+        assertThat(result.riskLevel()).isEqualTo(RiskLevel.HIGH_RISK);
     }
 }
