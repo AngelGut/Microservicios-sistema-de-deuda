@@ -13,86 +13,90 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * Controlador REST del microservicio de deudas.
- * Expone los endpoints HTTP para gestionar deudas.
- * Todos los endpoints requieren validación JWT excepto los internos.
- */
 @RestController
-@RequestMapping("/debts")
+@RequestMapping("/api/v1/debts")
 @RequiredArgsConstructor
 public class DebtController {
 
-    /** Servicio de deudas inyectado por interfaz (Dependency Inversion) */
     private final IDebtService debtService;
 
-    /**
-     * Crea una nueva deuda.
-     * POST /debts
-     * Requiere JWT válido en el header Authorization.
-     */
+    /** POST /debts — Crear nueva deuda */
     @PostMapping
     public ResponseEntity<ApiResponse<DebtResponse>> createDebt(
             @Valid @RequestBody CreateDebtRequest request) {
-
         Debt debt = debtService.createDebt(request);
-        DebtResponse response = toResponse(debt);
-
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.ok(response, TraceIdUtil.getTraceId()));
+                .body(ApiResponse.ok(toResponse(debt), TraceIdUtil.getTraceId()));
     }
 
     /**
-     * Obtiene todas las deudas de un deudor.
-     * GET /debts?debtorId=...
+     * GET /debts — Todas las deudas (sin filtro) o filtradas por deudor.
+     * debtorId es opcional: si se omite, devuelve todas.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<DebtResponse>>> getDebtsByDebtorId(
-            @RequestParam String debtorId) {
+    public ResponseEntity<ApiResponse<List<DebtResponse>>> getDebts(
+            @RequestParam(required = false) String debtorId) {
 
-        List<DebtResponse> debts = debtService.getDebtsByDebtorId(debtorId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        List<Debt> debts = (debtorId != null && !debtorId.isBlank())
+                ? debtService.getDebtsByDebtorId(debtorId)
+                : debtService.getAllDebts();
 
-        return ResponseEntity.ok(ApiResponse.ok(debts, TraceIdUtil.getTraceId()));
+        List<DebtResponse> response = debts.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(ApiResponse.ok(response, TraceIdUtil.getTraceId()));
     }
 
     /**
-     * Obtiene una deuda por su ID.
-     * GET /debts/{id}
+     * GET /debts/summary — KPIs para el dashboard.
+     * DEBE ir ANTES de /{id} para que "summary" no sea tratado como un ID.
      */
+    @GetMapping("/summary")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSummary() {
+        List<Debt> all = debtService.getAllDebts();
+
+        long totalActivas = all.stream().filter(d -> "ACTIVA".equals(d.getStatus())).count();
+        long totalPagadas = all.stream().filter(d -> "PAGADA".equals(d.getStatus())).count();
+
+        BigDecimal montoTotalActivo = all.stream()
+                .filter(d -> "ACTIVA".equals(d.getStatus()))
+                .map(Debt::getCurrentBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal montoTotalCobrado = all.stream()
+                .filter(d -> "PAGADA".equals(d.getStatus()))
+                .map(Debt::getOriginalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalActivas", totalActivas);
+        summary.put("totalPagadas", totalPagadas);
+        summary.put("montoTotalActivo", montoTotalActivo);
+        summary.put("montoTotalCobrado", montoTotalCobrado);
+
+        return ResponseEntity.ok(ApiResponse.ok(summary, TraceIdUtil.getTraceId()));
+    }
+
+    /** GET /debts/{id} — Detalle de una deuda */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<DebtResponse>> getDebtById(
-            @PathVariable String id) {
-
+    public ResponseEntity<ApiResponse<DebtResponse>> getDebtById(@PathVariable String id) {
         Debt debt = debtService.getDebtById(id);
-
         return ResponseEntity.ok(ApiResponse.ok(toResponse(debt), TraceIdUtil.getTraceId()));
     }
 
-    /**
-     * Aplica un pago a una deuda.
-     * POST /debts/{id}/apply-payment
-     * Endpoint interno llamado por el payment-service.
-     */
+    /** POST /debts/{id}/apply-payment — Endpoint interno del payment-service */
     @PostMapping("/{id}/apply-payment")
     public ResponseEntity<ApiResponse<DebtResponse>> applyPayment(
             @PathVariable String id,
             @Valid @RequestBody ApplyPaymentRequest request) {
-
         Debt debt = debtService.applyPayment(id, request);
-
         return ResponseEntity.ok(ApiResponse.ok(toResponse(debt), TraceIdUtil.getTraceId()));
     }
 
-    /**
-     * Convierte una entidad Debt a un DTO DebtResponse.
-     * Evita exponer la entidad directamente al cliente.
-     */
     private DebtResponse toResponse(Debt debt) {
         return DebtResponse.builder()
                 .id(debt.getId())

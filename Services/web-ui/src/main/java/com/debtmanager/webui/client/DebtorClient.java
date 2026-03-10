@@ -2,17 +2,23 @@ package com.debtmanager.webui.client;
 
 import com.debtmanager.webui.dto.request.DebtorRequest;
 import com.debtmanager.webui.dto.response.DebtorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class DebtorClient {
+
+    private static final Logger log = LoggerFactory.getLogger(DebtorClient.class);
 
     private final RestTemplate restTemplate;
     private final String gatewayUrl;
@@ -30,25 +36,32 @@ public class DebtorClient {
         return headers;
     }
 
+    private DebtorResponse mapToResponse(Map<String, Object> m) {
+        // debtor-service devuelve: id (Long), name, document, email, type
+        // web-ui espera: id (String), name, type, documentType, documentNumber, email,
+        // phone
+        String id = m.get("id") != null ? m.get("id").toString() : null;
+        String name = (String) m.get("name");
+        String type = (String) m.get("type");
+        String document = (String) m.get("document");
+        String email = (String) m.get("email");
+        return new DebtorResponse(id, name, type, null, document, email, null);
+    }
+
     public List<DebtorResponse> getAll(String token) {
         HttpEntity<?> entity = new HttpEntity<>(buildHeaders(token));
 
-        ResponseEntity<Map> response = restTemplate.exchange(
+        ResponseEntity<List> response = restTemplate.exchange(
                 gatewayUrl + "/api/v1/debtors",
                 HttpMethod.GET,
                 entity,
-                Map.class);
+                List.class);
 
-        List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
+        List<Map<String, Object>> body = response.getBody();
+        if (body == null)
+            return new ArrayList<>();
 
-        return data.stream().map(m -> new DebtorResponse(
-                (String) m.get("id"),
-                (String) m.get("name"),
-                (String) m.get("type"),
-                (String) m.get("documentType"),
-                (String) m.get("documentNumber"),
-                (String) m.get("email"),
-                (String) m.get("phone"))).toList();
+        return body.stream().map(this::mapToResponse).toList();
     }
 
     public DebtorResponse getById(String id, String token) {
@@ -60,23 +73,30 @@ public class DebtorClient {
                 entity,
                 Map.class);
 
-        Map<String, Object> m = (Map<String, Object>) response.getBody().get("data");
-
-        return new DebtorResponse(
-                (String) m.get("id"),
-                (String) m.get("name"),
-                (String) m.get("type"),
-                (String) m.get("documentType"),
-                (String) m.get("documentNumber"),
-                (String) m.get("email"),
-                (String) m.get("phone"));
+        return mapToResponse(response.getBody());
     }
 
     public void create(DebtorRequest request, String token) {
-        HttpEntity<DebtorRequest> entity = new HttpEntity<>(request, buildHeaders(token));
+        // Mapear del modelo web-ui al modelo debtor-service
+        // web-ui tiene: name, type, documentType, documentNumber, email, phone
+        // debtor-service espera: name, document, email, type
+        Map<String, String> body = new HashMap<>();
+        body.put("name", request.name());
+        body.put("type", request.type());
+        body.put("email", request.email());
+        // Combinar documentType + documentNumber como "document" (ej: "RNC-123456789")
+        String document = request.documentNumber();
+        if (request.documentType() != null && !request.documentType().isBlank()) {
+            document = request.documentType() + "-" + request.documentNumber();
+        }
+        body.put("document", document);
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, buildHeaders(token));
         restTemplate.postForEntity(
                 gatewayUrl + "/api/v1/debtors",
                 entity,
                 Map.class);
+
+        log.info("[DebtorClient] Deudor creado: {}", request.name());
     }
 }

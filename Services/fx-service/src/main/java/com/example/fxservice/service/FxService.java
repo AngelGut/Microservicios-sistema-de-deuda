@@ -1,44 +1,43 @@
 package com.example.fxservice.service;
 
 import com.example.fxservice.dto.ConversionResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
 
+/**
+ * Servicio de conversión de divisas.
+ * Usa open.er-api.com (gratuito, sin API key).
+ */
 @Service
 public class FxService {
 
     private final WebClient webClient;
-
-    @Value("${fx.api.key}")
-    private String apiKey;
-
-    @Value("${fx.api.url}")
-    private String apiUrl;
 
     public FxService(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();
     }
 
     public ConversionResponse convert(String from, String to, double amount) {
-        // Llamar a la API externa de exchangerate.host
+        // open.er-api.com — gratuito, sin API key
         Map response = webClient.get()
-                .uri(apiUrl + "/convert?from={from}&to={to}&amount={amount}&access_key={key}",
-                        from, to, amount, apiKey)
+                .uri("https://open.er-api.com/v6/latest/{from}", from)
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();
 
-        if (response == null || !(Boolean) response.get("success")) {
+        if (response == null || !"success".equals(response.get("result"))) {
             throw new RuntimeException("Error al obtener la tasa de cambio");
         }
 
-        // La API retorna el resultado convertido y la tasa en "info.quote"
-        Map info = (Map) response.get("info");
-        double rate = ((Number) info.get("quote")).doubleValue();
-        double converted = ((Number) response.get("result")).doubleValue();
+        Map<String, Object> rates = (Map<String, Object>) response.get("rates");
+        if (rates == null || !rates.containsKey(to)) {
+            throw new RuntimeException("Moneda destino no encontrada: " + to);
+        }
+
+        double rate = ((Number) rates.get(to)).doubleValue();
+        double converted = rate * amount;
 
         return ConversionResponse.builder()
                 .from(from)
