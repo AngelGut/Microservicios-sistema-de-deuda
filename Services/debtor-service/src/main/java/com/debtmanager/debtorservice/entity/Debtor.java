@@ -27,4 +27,7 @@ public class Debtor {
 
     @Column(length = 20)
     private String type;
+
+    @Column(length = 20)
+    private String phone;
 }

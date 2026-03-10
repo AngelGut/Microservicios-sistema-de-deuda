@@ -91,6 +91,7 @@ public class DebtorClient {
         body.put("name", request.name());
         body.put("type", request.type());
         body.put("email", request.email());
+        body.put("phone", request.phone());
         // Combinar documentType + documentNumber como "document" (ej: "RNC-123456789")
         String document = request.documentNumber();
         if (request.documentType() != null && !request.documentType().isBlank()) {
