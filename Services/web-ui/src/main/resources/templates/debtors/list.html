@@ -523,7 +523,7 @@
                     </div>
                     <div
                       class="debtor-doc-lg"
-                      th:text="${debtor.documentNumber}"
+                      th:text="${(debtor.documentType ?: '') + (debtor.documentType != null ? ': ' : '') + (debtor.documentNumber ?: '-')}"
                     >
                       ---
                     </div>
@@ -540,7 +540,7 @@
               <td
                 class="hide-mobile"
                 style="color: var(--text-muted)"
-                th:text="${debtor.documentType}"
+                th:text="${(debtor.documentType ?: '-') + (debtor.documentNumber != null ? ': ' + debtor.documentNumber : '')}"
               >
                 ---
               </td>
