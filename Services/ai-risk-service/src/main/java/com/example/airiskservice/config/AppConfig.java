@@ -7,23 +7,29 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class AppConfig {
 
     @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
     public OpenAPI openAPI() {
-        final String securitySchemeName = "bearerAuth";
+        final String schemeName = "bearerAuth";
         return new OpenAPI()
                 .info(new Info()
                         .title("AI Risk Service API")
-                        .description("Microservicio de análisis de riesgo crediticio")
-                        .version("0.0.1-SNAPSHOT"))
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                        .description("Análisis de riesgo crediticio con Reglas + Groq AI (llama3-70b-8192)")
+                        .version("2.0.0"))
+                .addSecurityItem(new SecurityRequirement().addList(schemeName))
                 .components(new Components()
-                        .addSecuritySchemes(securitySchemeName,
+                        .addSecuritySchemes(schemeName,
                                 new SecurityScheme()
-                                        .name(securitySchemeName)
+                                        .name(schemeName)
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")));
