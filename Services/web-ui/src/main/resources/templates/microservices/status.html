@@ -363,7 +363,7 @@
       <div class="sidebar-user">
         <div class="user-avatar">U</div>
         <div class="user-info">
-          <span class="user-name">Usuario</span>
+          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
           <span class="user-status"
             ><span class="status-dot"></span>JWT activo</span
           >
@@ -1010,7 +1010,7 @@
       </div>
     </main>
 
-    <script>
+    <script th:inline="javascript">
       function toggleSidebar() {
         document.getElementById("sidebar").classList.toggle("open");
         document.getElementById("sidebarOverlay").classList.toggle("open");
@@ -1021,37 +1021,37 @@
           key: "gateway",
           name: "api-gateway",
           port: 8080,
-          url: "http://localhost:8080/actuator/health",
+          url: /*[[${gatewayHealthUrl}]]*/ "http://localhost:8080/actuator/health",
         },
         {
           key: "auth",
           name: "auth-service",
           port: 8081,
-          url: "http://localhost:8081/actuator/health",
+          url: /*[[${authHealthUrl}]]*/ "http://localhost:8081/actuator/health",
         },
         {
           key: "debtor",
           name: "debtor-service",
           port: 8082,
-          url: "http://localhost:8082/actuator/health",
+          url: /*[[${debtorHealthUrl}]]*/ "http://localhost:8082/actuator/health",
         },
         {
           key: "debt",
           name: "debt-service",
           port: 8083,
-          url: "http://localhost:8083/actuator/health",
+          url: /*[[${debtHealthUrl}]]*/ "http://localhost:8083/actuator/health",
         },
         {
           key: "payment",
           name: "payment-service",
           port: 8084,
-          url: "http://localhost:8084/actuator/health",
+          url: /*[[${paymentHealthUrl}]]*/ "http://localhost:8084/actuator/health",
         },
         {
           key: "fx",
           name: "fx-service",
           port: 8085,
-          url: "http://localhost:8085/actuator/health",
+          url: /*[[${fxHealthUrl}]]*/ "http://localhost:8085/actuator/health",
         },
         {
           key: "notification",
@@ -1063,7 +1063,7 @@
           key: "ai",
           name: "ai-risk-service",
           port: 8087,
-          url: "http://localhost:8087/actuator/health",
+          url: /*[[${aiRiskHealthUrl}]]*/ "http://localhost:8087/actuator/health",
         },
       ];
 
