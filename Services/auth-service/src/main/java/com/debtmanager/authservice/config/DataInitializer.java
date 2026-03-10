@@ -1,36 +1,24 @@
 package com.debtmanager.authservice.config;
 
-import com.debtmanager.authservice.domain.model.User;
-import com.debtmanager.authservice.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Inserta un usuario de prueba si aún no existe.
+ * Inicialización liviana de arranque.
  *
- * Esto sirve para probar rápidamente el login del microservicio.
+ * auth-service ya no persiste usuarios locales para login;
+ * delega validación de credenciales al user-service.
  */
 @Configuration
 public class DataInitializer {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataInitializer.class);
+
     @Bean
-    public CommandLineRunner initUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        return args -> {
-            String adminEmail = "admin@debtmanager.com";
-
-            boolean exists = userRepository.findByEmail(adminEmail).isPresent();
-
-            if (!exists) {
-                User user = new User();
-                user.setEmail(adminEmail);
-                user.setPassword(passwordEncoder.encode("Admin123*"));
-                user.setRole("ADMIN");
-                user.setEnabled(true);
-
-                userRepository.save(user);
-            }
-        };
+    public CommandLineRunner startupInfo() {
+        return args -> LOGGER.info("Auth-service iniciado en modo delegación de credenciales a user-service");
     }
 }
