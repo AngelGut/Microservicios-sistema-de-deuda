@@ -52,4 +52,3 @@ Value Add (para puntos extra):
 8. Recordatorios + email
 9. Error logs (email al dueño)
 10. IA estado de deudor (o fallback)
-    recarga de todo
