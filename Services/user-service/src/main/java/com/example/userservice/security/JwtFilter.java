@@ -26,9 +26,14 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
+        // Rutas públicas — sin token requerido
+        // Se aceptan tanto /api/users como /api/v1/users porque el gateway
+        // puede reenviar el path completo sin StripPrefix
         if (("POST".equalsIgnoreCase(method) && "/api/users".equals(path))
+                || ("POST".equalsIgnoreCase(method) && "/api/v1/users".equals(path))
                 || ("POST".equalsIgnoreCase(method) && "/api/users/login".equals(path))
-                || ("POST".equalsIgnoreCase(method) && "/api/users/internal/verify-credentials".equals(path))) {
+                || ("POST".equalsIgnoreCase(method) && "/api/users/internal/verify-credentials".equals(path))
+                || ("POST".equalsIgnoreCase(method) && "/api/v1/users/internal/verify-credentials".equals(path))) {
             filterChain.doFilter(request, response);
             return;
         }
