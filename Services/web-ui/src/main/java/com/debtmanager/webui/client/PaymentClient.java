@@ -11,21 +11,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Consume payment-service a través del api-gateway.
- *
- * Endpoints utilizados:
- * GET /api/v1/payments → todos los pagos (historial global)
- * GET /api/v1/payments?debtId={id} → historial de pagos de una deuda
- * GET /api/v1/payments/recent?limit=7 → últimos N pagos (para dashboard)
- * POST /api/v1/payments → registrar nuevo pago
- *
- * Todos usan el formato estándar: { success, timestamp, traceId, data }
- */
 @Component
 public class PaymentClient {
 
@@ -47,22 +38,18 @@ public class PaymentClient {
         return headers;
     }
 
-    // ── Lista global de todos los pagos ───────────────────────────────────────
+    // ── Lista global de todos los pagos ──────────────────────────────────────
     public List<PaymentResponse> getAll(String token) {
         try {
             HttpEntity<?> entity = new HttpEntity<>(buildHeaders(token));
-
             ResponseEntity<Map> response = restTemplate.exchange(
                     gatewayUrl + "/api/v1/payments",
-                    HttpMethod.GET,
-                    entity,
-                    Map.class);
+                    HttpMethod.GET, entity, Map.class);
 
             if (response.getBody() != null) {
                 List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
-                if (data != null) {
+                if (data != null)
                     return data.stream().map(this::mapToPaymentResponse).toList();
-                }
             }
         } catch (Exception e) {
             log.warn("[PaymentClient] getAll error: {}", e.getMessage());
@@ -70,74 +57,69 @@ public class PaymentClient {
         return Collections.emptyList();
     }
 
-    // ── Dashboard: actividad reciente ─────────────────────────────────────────
+    // ── Dashboard: últimos pagos (simulado desde getAll) ──────────────────────
     public List<RecentPaymentResponse> getRecent(int limit, String token) {
         try {
-            HttpEntity<?> entity = new HttpEntity<>(buildHeaders(token));
-
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    gatewayUrl + "/api/v1/payments/recent?limit=" + limit,
-                    HttpMethod.GET,
-                    entity,
-                    Map.class);
-
-            if (response.getBody() != null) {
-                List<Map<String, Object>> dataList = (List<Map<String, Object>>) response.getBody().get("data");
-                if (dataList != null) {
-                    return dataList.stream().map(m -> new RecentPaymentResponse(
-                            (String) m.get("id"),
-                            (String) m.get("debtId"),
-                            (String) m.get("debtorName"),
-                            m.get("amount") != null ? new BigDecimal(m.get("amount").toString()) : BigDecimal.ZERO,
-                            (String) m.get("currency"),
-                            (String) m.get("reference"),
-                            (String) m.get("status"),
-                            (String) m.get("paidAt"))).toList();
-                }
-            }
+            List<PaymentResponse> all = getAll(token);
+            return all.stream()
+                    .limit(limit)
+                    .map(p -> new RecentPaymentResponse(
+                            p.id(), p.debtId(), null,
+                            p.amount(), "DOP",
+                            p.reference(), p.status(), p.paidAt()))
+                    .toList();
         } catch (Exception e) {
             log.warn("[PaymentClient] getRecent no disponible: {}", e.getMessage());
         }
         return Collections.emptyList();
     }
 
-    // ── Historial de pagos por deuda ──────────────────────────────────────────
+    // ── Historial por deuda ───────────────────────────────────────────────────
     public List<PaymentResponse> getByDebtId(String debtId, String token) {
         try {
             HttpEntity<?> entity = new HttpEntity<>(buildHeaders(token));
-
             ResponseEntity<Map> response = restTemplate.exchange(
-                    gatewayUrl + "/api/v1/payments?debtId=" + debtId,
-                    HttpMethod.GET,
-                    entity,
-                    Map.class);
+                    gatewayUrl + "/api/v1/payments/by-debt/" + debtId,
+                    HttpMethod.GET, entity, Map.class);
 
-            List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
-            return data.stream().map(this::mapToPaymentResponse).toList();
+            if (response.getBody() != null) {
+                List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
+                if (data != null)
+                    return data.stream().map(this::mapToPaymentResponse).toList();
+            }
         } catch (Exception e) {
             log.warn("[PaymentClient] getByDebtId error: {}", e.getMessage());
-            return Collections.emptyList();
         }
+        return Collections.emptyList();
     }
 
-    // ── Registrar pago ────────────────────────────────────────────────────────
+    // ── Registrar pago — adapta web-ui request al DTO del payment-service ────
     public void create(PaymentRequest request, String token) {
-        HttpEntity<PaymentRequest> entity = new HttpEntity<>(request, buildHeaders(token));
-        restTemplate.postForEntity(
-                gatewayUrl + "/api/v1/payments",
-                entity,
-                Map.class);
+        // web-ui envía: debtId (String), amount, reference, notes
+        // payment-service espera: debtId (Long), amount, paymentDate, note
+        Map<String, Object> body = new HashMap<>();
+        body.put("debtId", Long.parseLong(request.debtId()));
+        body.put("amount", request.amount());
+        body.put("paymentDate", LocalDate.now().toString());
+        // Usar reference o notes como "note"
+        String note = request.notes() != null ? request.notes()
+                : request.reference() != null ? request.reference() : "";
+        body.put("note", note);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, buildHeaders(token));
+        restTemplate.postForEntity(gatewayUrl + "/api/v1/payments", entity, Map.class);
+        log.info("[PaymentClient] Pago registrado para deuda: {}", request.debtId());
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────
     private PaymentResponse mapToPaymentResponse(Map<String, Object> m) {
         return new PaymentResponse(
-                (String) m.get("id"),
-                (String) m.get("debtId"),
+                m.get("id") != null ? m.get("id").toString() : null,
+                m.get("debtId") != null ? m.get("debtId").toString() : null,
                 m.get("amount") != null ? new BigDecimal(m.get("amount").toString()) : BigDecimal.ZERO,
-                (String) m.get("reference"),
-                (String) m.get("notes"),
-                (String) m.get("status"),
-                (String) m.get("paidAt"));
+                m.get("reference") != null ? m.get("reference").toString() : null,
+                m.get("note") != null ? m.get("note").toString() : null,
+                "APPLIED",
+                m.get("paymentDate") != null ? m.get("paymentDate").toString() : null);
     }
 }

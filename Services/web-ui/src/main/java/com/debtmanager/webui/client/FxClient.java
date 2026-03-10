@@ -47,9 +47,11 @@ public class FxClient {
                     Map.class);
 
             if (response.getBody() != null) {
-                Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-                if (data != null && data.get("rate") != null) {
-                    return new BigDecimal(data.get("rate").toString());
+                // fx-service devuelve ConversionResponse directamente:
+                // {from,to,amount,converted,rate}
+                Object rate = response.getBody().get("rate");
+                if (rate != null) {
+                    return new BigDecimal(rate.toString());
                 }
             }
         } catch (Exception e) {

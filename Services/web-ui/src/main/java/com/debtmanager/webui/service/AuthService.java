@@ -15,4 +15,8 @@ public class AuthService {
     public String login(String email, String password) {
         return authClient.login(email, password);
     }
+
+    public void register(String fullName, String username, String email, String password) {
+        authClient.register(fullName, username, email, password);
+    }
 }

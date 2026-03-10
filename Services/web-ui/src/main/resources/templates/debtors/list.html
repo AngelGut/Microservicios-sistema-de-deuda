@@ -331,7 +331,7 @@
             <polyline points="12 8 12 12 14 14" /></svg
           >Microservicios
         </a>
-        <a href="#" class="nav-item">
+        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -346,7 +346,7 @@
       <div class="sidebar-user">
         <div class="user-avatar">U</div>
         <div class="user-info">
-          <span class="user-name">Usuario</span>
+          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
           <span class="user-status"
             ><span class="status-dot"></span>JWT activo</span
           >
@@ -523,7 +523,7 @@
                     </div>
                     <div
                       class="debtor-doc-lg"
-                      th:text="${debtor.documentNumber}"
+                      th:text="${(debtor.documentType ?: '') + (debtor.documentType != null ? ': ' : '') + (debtor.documentNumber ?: '-')}"
                     >
                       ---
                     </div>
@@ -540,7 +540,7 @@
               <td
                 class="hide-mobile"
                 style="color: var(--text-muted)"
-                th:text="${debtor.documentType}"
+                th:text="${(debtor.documentType ?: '-') + (debtor.documentNumber != null ? ': ' + debtor.documentNumber : '')}"
               >
                 ---
               </td>

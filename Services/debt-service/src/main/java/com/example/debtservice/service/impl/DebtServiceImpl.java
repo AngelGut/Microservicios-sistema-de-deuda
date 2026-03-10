@@ -17,7 +17,7 @@ import java.util.UUID;
 /**
  * Implementación concreta de IDebtService.
  * Contiene toda la lógica de negocio del microservicio de deudas.
- * 
+ *
  * @Service le indica a Spring que esta clase es un componente de servicio.
  * @RequiredArgsConstructor inyecta automáticamente DebtRepository por
  *                          constructor.
@@ -60,6 +60,12 @@ public class DebtServiceImpl implements IDebtService {
      * Obtiene todas las deudas de un deudor específico.
      * Si el deudor no tiene deudas, retorna lista vacía.
      */
+
+    @Override
+    public List<Debt> getAllDebts() {
+        return debtRepository.findAll();
+    }
+
     @Override
     public List<Debt> getDebtsByDebtorId(String debtorId) {
         // Usamos el método que definimos en DebtRepository
