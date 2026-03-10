@@ -21,41 +21,23 @@ public class AuthController {
         return "auth/login";
     }
 
-    // ════════════════════════════════════════════════════════
-    // ⚠️ DESARROLLO — token temporal, cualquier credencial entra
-    // Comentar este método y descomentar el de PRODUCCIÓN
-    // cuando auth-service esté listo
-    // ════════════════════════════════════════════════════════
     @PostMapping("/login")
     public String login(@RequestParam String email,
             @RequestParam String password,
             HttpSession session,
             Model model) {
-        session.setAttribute("jwt", "token-temporal-dev");
-        return "redirect:/dashboard";
+        try {
+            String token = authService.login(email, password);
+            session.setAttribute("jwt", token);
+            String displayName = email != null && email.contains("@") ? email.substring(0, email.indexOf("@")) : email;
+            session.setAttribute("userDisplayName", displayName == null || displayName.isBlank() ? "Usuario" : displayName);
+            return "redirect:/dashboard";
+        } catch (Exception e) {
+            model.addAttribute("error",
+                    "Credenciales incorrectas. Verifica tu email y contraseña.");
+            return "auth/login";
+        }
     }
-
-    // ════════════════════════════════════════════════════════
-    // ✅ PRODUCCIÓN — descomentar esto y comentar el de arriba
-    // ════════════════════════════════════════════════════════
-    /*
-     * @PostMapping("/login")
-     * public String login(@RequestParam String email,
-     * 
-     * @RequestParam String password,
-     * HttpSession session,
-     * Model model) {
-     * try {
-     * String token = authService.login(email, password);
-     * session.setAttribute("jwt", token);
-     * return "redirect:/dashboard";
-     * } catch (Exception e) {
-     * model.addAttribute("error",
-     * "Credenciales incorrectas. Verifica tu email y contraseña.");
-     * return "auth/login";
-     * }
-     * }
-     */
 
     // ── REGISTRO ─────────────────────────────────────────────
     @PostMapping("/register")
