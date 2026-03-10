@@ -1,0 +1,1152 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estado de Microservicios – Exterminadora Tejada</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
+    <style>
+      .status-header {
+        margin-bottom: 24px;
+      }
+      .status-header h2 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--white);
+        margin: 0 0 4px;
+      }
+      .status-header .sub {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      .status-summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .summary-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4ade80;
+      }
+      .summary-dot.warn {
+        background: #fb923c;
+      }
+      .summary-text {
+        color: #4ade80;
+      }
+      .summary-text.warn {
+        color: #fb923c;
+      }
+
+      .services-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+
+      .service-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        position: relative;
+        transition: border-color 0.2s;
+      }
+      .service-card:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+      .service-card.status-up {
+        border-left: 3px solid #4ade80;
+      }
+      .service-card.status-slow {
+        border-left: 3px solid #fb923c;
+      }
+      .service-card.status-down {
+        border-left: 3px solid #f87171;
+      }
+      .service-card.status-unknown {
+        border-left: 3px solid #6b7280;
+      }
+
+      .service-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .service-name-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .service-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .dot-up {
+        background: #4ade80;
+        box-shadow: 0 0 6px rgba(74, 222, 128, 0.5);
+      }
+      .dot-slow {
+        background: #fb923c;
+        box-shadow: 0 0 6px rgba(251, 146, 60, 0.5);
+      }
+      .dot-down {
+        background: #f87171;
+        box-shadow: 0 0 6px rgba(248, 113, 113, 0.5);
+      }
+      .dot-unknown {
+        background: #6b7280;
+      }
+
+      .service-name {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--white);
+        font-family: monospace;
+      }
+      .service-port {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 400;
+        font-family: monospace;
+      }
+      .service-latency {
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .latency-up {
+        color: #4ade80;
+      }
+      .latency-slow {
+        color: #fb923c;
+      }
+      .latency-down {
+        color: #f87171;
+      }
+      .latency-unknown {
+        color: #6b7280;
+      }
+
+      .service-desc {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+        line-height: 1.5;
+      }
+
+      .service-tags {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .tag {
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .tag-swagger {
+        background: rgba(41, 64, 108, 0.3);
+        color: #7ba7e0;
+        border: 1px solid rgba(41, 64, 108, 0.4);
+      }
+      .tag-actuator {
+        background: rgba(248, 113, 113, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+      .tag-green {
+        background: rgba(76, 94, 26, 0.2);
+        color: #8bc34a;
+        border: 1px solid rgba(76, 94, 26, 0.3);
+      }
+      .tag-orange {
+        background: rgba(251, 146, 60, 0.15);
+        color: #fb923c;
+        border: 1px solid rgba(251, 146, 60, 0.3);
+      }
+      .tag-purple {
+        background: rgba(139, 92, 246, 0.15);
+        color: #c4b5fd;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+      }
+
+      .service-progress {
+        height: 3px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .service-progress-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 1s ease;
+      }
+      .fill-up {
+        background: linear-gradient(90deg, #4c5e1a, #4ade80);
+      }
+      .fill-slow {
+        background: linear-gradient(90deg, #92400e, #fb923c);
+      }
+      .fill-down {
+        background: linear-gradient(90deg, #7f1d1d, #f87171);
+      }
+      .fill-unknown {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .refresh-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .refresh-note {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+      .refresh-note span {
+        color: #8bc34a;
+        font-weight: 700;
+      }
+      .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: "Nunito", sans-serif;
+      }
+      .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.09);
+        color: var(--white);
+      }
+      .btn-refresh.spinning svg {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .services-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img th:src="@{/images/logo.png}" alt="Logo" class="sidebar-logo-img" />
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-name">Exterminadora</span>
+          <span class="sidebar-brand-sub">Tejada · Sistema</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Principal</div>
+        <a href="/dashboard" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" /></svg
+          >Dashboard
+        </a>
+        <a href="/debtors" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+          >Deudores
+        </a>
+        <a href="/debts" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" /></svg
+          >Deudas
+        </a>
+        <a href="/payments" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
+          >Pagos Parciales
+        </a>
+        <a href="/reminders" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" /></svg
+          >Recordatorios
+        </a>
+        <div class="nav-section-label" style="margin-top: 24px">Sistema</div>
+        <a href="/microservices" class="nav-item active">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 8 12 12 14 14" /></svg
+          >Microservicios
+        </a>
+        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" /></svg
+          >Swagger / APIs
+        </a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="user-avatar">U</div>
+        <div class="user-info">
+          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
+          <span class="user-status"
+            ><span class="status-dot"></span>JWT activo</span
+          >
+        </div>
+        <a href="/auth/logout" class="logout-btn" title="Cerrar sesión">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="16"
+            height="16"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </a>
+      </div>
+    </aside>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="20"
+              height="20"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="page-title">Microservicios</h1>
+            <nav class="breadcrumb">
+              <a
+                href="/dashboard"
+                style="color: var(--text-muted); text-decoration: none"
+                >Inicio</a
+              >
+              <span class="bc-sep">›</span>
+              <span class="bc-active">Estado del Sistema</span>
+            </nav>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="icon-btn" title="Notificaciones">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="18"
+              height="18"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Header estado -->
+      <div class="refresh-bar">
+        <div>
+          <div class="status-header">
+            <h2>Estado de Microservicios</h2>
+            <div class="sub">
+              Railway · Spring Boot 3 · Java 17 · PostgreSQL
+            </div>
+          </div>
+          <div class="status-summary">
+            <div class="summary-dot" id="summaryDot"></div>
+            <span class="summary-text" id="summaryText"
+              >Verificando servicios…</span
+            >
+          </div>
+        </div>
+        <button class="btn-refresh" id="btnRefresh" onclick="checkAll()">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="14"
+            height="14"
+          >
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
+          Verificar ahora
+        </button>
+      </div>
+
+      <!-- Grid de servicios -->
+      <div class="services-grid" id="servicesGrid">
+        <!-- api-gateway :8080 -->
+        <div class="service-card" id="card-gateway">
+          <div class="service-card-header">
+            <div class="service-name-row">
+              <div class="service-dot dot-unknown" id="dot-gateway"></div>
+              <span class="service-name">api-gateway</span>
+              <span class="service-port">:8080</span>
+            </div>
+            <span class="service-latency latency-unknown" id="lat-gateway"
+              >—</span
+            >
+          </div>
+          <div class="service-desc">
+            Spring Cloud Gateway · Enrutamiento + CORS + JWT filter
+          </div>
+          <div class="service-tags">
+            <a
+              href="https://gateway-production-a233.up.railway.app/swagger-ui.html"
+              target="_blank"
+              class="tag tag-swagger"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Swagger
+            </a>
+            <a
+              href="https://gateway-production-a233.up.railway.app/actuator/health"
+              target="_blank"
+              class="tag tag-actuator"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+              Actuator
+            </a>
+          </div>
+          <div class="service-progress">
+            <div
+              class="service-progress-fill fill-unknown"
+              id="bar-gateway"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- auth-service :8081 -->
+        <div class="service-card" id="card-auth">
+          <div class="service-card-header">
+            <div class="service-name-row">
+              <div class="service-dot dot-unknown" id="dot-auth"></div>
+              <span class="service-name">auth-service</span>
+              <span class="service-port">:8081</span>
+            </div>
+            <span class="service-latency latency-unknown" id="lat-auth">—</span>
+          </div>
+          <div class="service-desc">JWT HS256 · BCrypt · Roles ADMIN/USER</div>
+          <div class="service-tags">
+            <a
+              href="https://auth-service-production-8f2a.up.railway.app/swagger-ui.html"
+              target="_blank"
+              class="tag tag-swagger"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Swagger
+            </a>
+            <a
+              href="https://auth-service-production-8f2a.up.railway.app/actuator/health"
+              target="_blank"
+              class="tag tag-actuator"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+              Actuator
+            </a>
+          </div>
+          <div class="service-progress">
+            <div
+              class="service-progress-fill fill-unknown"
+              id="bar-auth"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- debtor-service :8082 -->
+        <div class="service-card" id="card-debtor">
+          <div class="service-card-header">
+            <div class="service-name-row">
+              <div class="service-dot dot-unknown" id="dot-debtor"></div>
+              <span class="service-name">debtor-service</span>
+              <span class="service-port">:8082</span>
+            </div>
+            <span class="service-latency latency-unknown" id="lat-debtor"
+              >—</span
+            >
+          </div>
+          <div class="service-desc">
+            CRUD Deudores · PERSONA/COMPAÑÍA · Cédula/RNC
+          </div>
+          <div class="service-tags">
+            <a
+              href="https://debtor-service-production.up.railway.app/swagger-ui.html"
+              target="_blank"
+              class="tag tag-swagger"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Swagger
+            </a>
+            <a
+              href="https://debtor-service-production.up.railway.app/actuator/health"
+              target="_blank"
+              class="tag tag-actuator"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+              Actuator
+            </a>
+          </div>
+          <div class="service-progress">
+            <div
+              class="service-progress-fill fill-unknown"
+              id="bar-debtor"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- debt-service :8083 -->
+        <div class="service-card" id="card-debt">
+          <div class="service-card-header">
+            <div class="service-name-row">
+              <div class="service-dot dot-unknown" id="dot-debt"></div>
+              <span class="service-name">debt-service</span>
+              <span class="service-port">:8083</span>
+            </div>
+            <span class="service-latency latency-unknown" id="lat-debt">—</span>
+          </div>
+          <div class="service-desc">
+            Deudas · Saldo automático · apply-payment endpoint
+          </div>
+          <div class="service-tags">
+            <a
+              href="https://debt-service-production.up.railway.app/swagger-ui.html"
+              target="_blank"
+              class="tag tag-swagger"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Swagger
+            </a>
+            <a
+              href="https://debt-service-production.up.railway.app/actuator/health"
+              target="_blank"
+              class="tag tag-actuator"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+              Actuator
+            </a>
+          </div>
+          <div class="service-progress">
+            <div
+              class="service-progress-fill fill-unknown"
+              id="bar-debt"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- payment-service :8084 -->
+        <div class="service-card" id="card-payment">
+          <div class="service-card-header">
+            <div class="service-name-row">
+              <div class="service-dot dot-unknown" id="dot-payment"></div>
+              <span class="service-name">payment-service</span>
+              <span class="service-port">:8084</span>
+            </div>
+            <span class="service-latency latency-unknown" id="lat-payment"
+              >—</span
+            >
+          </div>
+          <div class="service-desc">
+            Pagos Parciales · Resilience4j CB+Retry+Timeout
+          </div>
+          <div class="service-tags">
+            <a
+              href="https://payment-service-production.up.railway.app/swagger-ui.html"
+              target="_blank"
+              class="tag tag-swagger"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Swagger
+            </a>
+            <a
+              href="https://payment-service-production.up.railway.app/actuator/health"
+              target="_blank"
+              class="tag tag-actuator"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+              Actuator
+            </a>
+            <span class="tag tag-green">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              Resilience4j
+            </span>
+          </div>
+          <div class="service-progress">
+            <div
+              class="service-progress-fill fill-unknown"
+              id="bar-payment"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- fx-service :8085 -->
+        <div class="service-card" id="card-fx">
+          <div class="service-card-header">
+            <div class="service-name-row">
+              <div class="service-dot dot-unknown" id="dot-fx"></div>
+              <span class="service-name">fx-service</span>
+              <span class="service-port">:8085</span>
+            </div>
+            <span class="service-latency latency-unknown" id="lat-fx">—</span>
+          </div>
+          <div class="service-desc">
+            Tasa USD/DOP · @Cacheable 30min · exchangeratesapi
+          </div>
+          <div class="service-tags">
+            <a
+              href="https://fx-service-production.up.railway.app/swagger-ui.html"
+              target="_blank"
+              class="tag tag-swagger"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Swagger
+            </a>
+            <a
+              href="https://fx-service-production.up.railway.app/actuator/health"
+              target="_blank"
+              class="tag tag-actuator"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+              Actuator
+            </a>
+            <span class="tag tag-orange">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              @Cacheable
+            </span>
+          </div>
+          <div class="service-progress">
+            <div
+              class="service-progress-fill fill-unknown"
+              id="bar-fx"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- notification-service :8086 -->
+        <div class="service-card" id="card-notification">
+          <div class="service-card-header">
+            <div class="service-name-row">
+              <div class="service-dot dot-unknown" id="dot-notification"></div>
+              <span class="service-name">notification-service</span>
+              <span class="service-port">:8086</span>
+            </div>
+            <span class="service-latency latency-unknown" id="lat-notification"
+              >—</span
+            >
+          </div>
+          <div class="service-desc">
+            Email SendGrid/Mailgun · Scheduler · Outbox Pattern
+          </div>
+          <div class="service-tags">
+            <a
+              href="https://notification-service-production.up.railway.app/swagger-ui.html"
+              target="_blank"
+              class="tag tag-swagger"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Swagger
+            </a>
+            <a
+              href="https://notification-service-production.up.railway.app/actuator/health"
+              target="_blank"
+              class="tag tag-actuator"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+              Actuator
+            </a>
+          </div>
+          <div class="service-progress">
+            <div
+              class="service-progress-fill fill-unknown"
+              id="bar-notification"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- ai-risk-service :8087 -->
+        <div class="service-card" id="card-ai">
+          <div class="service-card-header">
+            <div class="service-name-row">
+              <div class="service-dot dot-unknown" id="dot-ai"></div>
+              <span class="service-name">ai-risk-service</span>
+              <span class="service-port">:8087</span>
+            </div>
+            <span class="service-latency latency-unknown" id="lat-ai">—</span>
+          </div>
+          <div class="service-desc">
+            Groq API · llama3-8b · FIABLE/REVISIÓN/BLOQUEADO
+          </div>
+          <div class="service-tags">
+            <a
+              href="https://ai-risk-service-production.up.railway.app/swagger-ui.html"
+              target="_blank"
+              class="tag tag-swagger"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              Swagger
+            </a>
+            <a
+              href="https://ai-risk-service-production.up.railway.app/actuator/health"
+              target="_blank"
+              class="tag tag-actuator"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+              Actuator
+            </a>
+            <span class="tag tag-purple">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="10"
+                height="10"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Groq API
+            </span>
+          </div>
+          <div class="service-progress">
+            <div
+              class="service-progress-fill fill-unknown"
+              id="bar-ai"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script th:inline="javascript">
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("open");
+      }
+
+      const SERVICES = [
+        {
+          key: "gateway",
+          name: "api-gateway",
+          port: 8080,
+          url: /*[[${gatewayHealthUrl}]]*/ "https://gateway-production-a233.up.railway.app/actuator/health",
+        },
+        {
+          key: "auth",
+          name: "auth-service",
+          port: 8081,
+          url: /*[[${authHealthUrl}]]*/ "https://auth-service-production-8f2a.up.railway.app/actuator/health",
+        },
+        {
+          key: "debtor",
+          name: "debtor-service",
+          port: 8082,
+          url: /*[[${debtorHealthUrl}]]*/ "https://debtor-service-production.up.railway.app/actuator/health",
+        },
+        {
+          key: "debt",
+          name: "debt-service",
+          port: 8083,
+          url: /*[[${debtHealthUrl}]]*/ "https://debt-service-production.up.railway.app/actuator/health",
+        },
+        {
+          key: "payment",
+          name: "payment-service",
+          port: 8084,
+          url: /*[[${paymentHealthUrl}]]*/ "https://payment-service-production.up.railway.app/actuator/health",
+        },
+        {
+          key: "fx",
+          name: "fx-service",
+          port: 8085,
+          url: /*[[${fxHealthUrl}]]*/ "https://fx-service-production.up.railway.app/actuator/health",
+        },
+        {
+          key: "notification",
+          name: "notification-service",
+          port: 8086,
+          url: "https://notification-service-production.up.railway.app/actuator/health",
+        },
+        {
+          key: "ai",
+          name: "ai-risk-service",
+          port: 8087,
+          url: /*[[${aiRiskHealthUrl}]]*/ "https://ai-risk-service-production.up.railway.app/actuator/health",
+        },
+      ];
+
+      async function checkService(svc) {
+        const start = Date.now();
+        try {
+          const res = await fetch(svc.url, {
+            signal: AbortSignal.timeout(4000),
+          });
+          const latency = Date.now() - start;
+          const data = await res.json().catch(() => ({}));
+          const isUp =
+            res.ok && (data.status === "UP" || data.status === undefined);
+          const isSlow = isUp && latency > 500;
+          return { status: isSlow ? "slow" : isUp ? "up" : "down", latency };
+        } catch {
+          return { status: "down", latency: null };
+        }
+      }
+
+      function applyStatus(key, status, latency) {
+        const card = document.getElementById("card-" + key);
+        const dot = document.getElementById("dot-" + key);
+        const lat = document.getElementById("lat-" + key);
+        const bar = document.getElementById("bar-" + key);
+
+        card.className = "service-card status-" + status;
+        dot.className = "service-dot dot-" + status;
+
+        if (status === "up") {
+          lat.className = "service-latency latency-up";
+          lat.textContent = latency + "ms";
+          bar.className = "service-progress-fill fill-up";
+          bar.style.width =
+            Math.min(100, Math.max(20, 100 - latency / 20)) + "%";
+        } else if (status === "slow") {
+          lat.className = "service-latency latency-slow";
+          lat.textContent = "lento";
+          bar.className = "service-progress-fill fill-slow";
+          bar.style.width = "40%";
+        } else {
+          lat.className = "service-latency latency-down";
+          lat.textContent = "offline";
+          bar.className = "service-progress-fill fill-down";
+          bar.style.width = "8%";
+        }
+      }
+
+      async function checkAll() {
+        const btn = document.getElementById("btnRefresh");
+        btn.classList.add("spinning");
+        btn.disabled = true;
+
+        document.getElementById("summaryText").textContent =
+          "Verificando servicios…";
+        document.getElementById("summaryDot").className = "summary-dot";
+
+        const results = await Promise.all(SERVICES.map((s) => checkService(s)));
+
+        let upCount = 0;
+        results.forEach((r, i) => {
+          applyStatus(SERVICES[i].key, r.status, r.latency);
+          if (r.status === "up" || r.status === "slow") upCount++;
+        });
+
+        const total = SERVICES.length;
+        const allUp = upCount === total;
+        const dot = document.getElementById("summaryDot");
+        const txt = document.getElementById("summaryText");
+
+        dot.className = "summary-dot" + (allUp ? "" : " warn");
+        txt.className = "summary-text" + (allUp ? "" : " warn");
+        txt.textContent = upCount + "/" + total + " servicios activos";
+
+        btn.classList.remove("spinning");
+        btn.disabled = false;
+      }
+
+      // Verificar al cargar
+      checkAll();
+
+      // Auto-refresh cada 30 segundos
+      setInterval(checkAll, 30000);
+    </script>
+  </body>
+</html>

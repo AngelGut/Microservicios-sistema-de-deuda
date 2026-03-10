@@ -1,0 +1,826 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${debtor.name} + ' – Exterminadora Tejada'">
+      Detalle Deudor
+    </title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
+    <style>
+      /* ── Detalle de deudor ── */
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 7px 14px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 700;
+        transition: all 0.2s;
+        margin-bottom: 20px;
+      }
+      .back-btn:hover {
+        background: rgba(255, 255, 255, 0.09);
+        color: var(--white);
+      }
+
+      /* Hero del deudor */
+      .debtor-hero {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .debtor-hero-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .hero-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+      }
+      .hero-name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--white);
+        margin-bottom: 6px;
+      }
+      .hero-badges {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .hero-badge {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+      .badge-persona {
+        background: rgba(76, 94, 26, 0.2);
+        color: #8bc34a;
+        border: 1px solid rgba(76, 94, 26, 0.4);
+      }
+      .badge-compania {
+        background: rgba(41, 64, 108, 0.2);
+        color: #7ba7e0;
+        border: 1px solid rgba(41, 64, 108, 0.4);
+      }
+      .hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .hero-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+      .hero-meta-item svg {
+        color: var(--text-muted);
+      }
+      .hero-meta-item a {
+        color: var(--text-muted);
+        text-decoration: none;
+      }
+      .hero-meta-item a:hover {
+        color: var(--white);
+      }
+      .hero-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn-hero-action {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 18px;
+        border-radius: 9px;
+        font-family: "Nunito", sans-serif;
+        font-size: 0.82rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+      }
+      .btn-hero-primary {
+        background: linear-gradient(135deg, var(--green), var(--green-light));
+        color: white;
+        box-shadow: 0 4px 14px var(--green-glow);
+      }
+      .btn-hero-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px var(--green-glow);
+      }
+      .btn-hero-secondary {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border);
+        color: var(--text-label);
+      }
+      .btn-hero-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--white);
+      }
+
+      /* Stats row */
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        text-align: center;
+      }
+      .stat-val {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--white);
+      }
+      .stat-val.orange {
+        color: #fb923c;
+      }
+      .stat-val.green {
+        color: #4ade80;
+      }
+      .stat-lbl {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: 700;
+      }
+
+      /* Sección de deudas */
+      .section-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+      .section-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .section-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--white);
+      }
+      .debts-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .debts-table th {
+        padding: 10px 16px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: left;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid var(--border);
+      }
+      .debts-table td {
+        padding: 14px 16px;
+        font-size: 0.83rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        vertical-align: middle;
+      }
+      .debts-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .debts-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .status-activa {
+        background: rgba(251, 146, 60, 0.15);
+        color: #fb923c;
+        border: 1px solid rgba(251, 146, 60, 0.3);
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+      .status-pagada {
+        background: rgba(74, 222, 128, 0.12);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+
+      .amount-activa {
+        color: #fb923c;
+        font-weight: 800;
+      }
+      .amount-pagada {
+        color: #4ade80;
+        font-weight: 800;
+      }
+
+      .progress-bar-wrap {
+        width: 80px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+        margin-top: 4px;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        border-radius: 2px;
+        background: linear-gradient(90deg, var(--green), #8bc34a);
+      }
+
+      .action-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+      }
+      .action-btn:hover {
+        background: rgba(76, 94, 26, 0.2);
+        color: #8bc34a;
+        border-color: rgba(76, 94, 26, 0.4);
+      }
+      .action-btn.del:hover {
+        background: rgba(248, 113, 113, 0.15);
+        color: #f87171;
+        border-color: rgba(248, 113, 113, 0.3);
+      }
+
+      .currency-pill {
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        background: rgba(41, 64, 108, 0.25);
+        color: #7ba7e0;
+      }
+
+      .empty-debts {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      @media (max-width: 768px) {
+        .stats-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .debtor-hero {
+          flex-direction: column;
+        }
+        .hero-actions {
+          width: 100%;
+        }
+        .btn-hero-action {
+          flex: 1;
+          justify-content: center;
+        }
+        .hide-mobile {
+          display: none;
+        }
+      }
+      @media (max-width: 480px) {
+        .stats-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img th:src="@{/images/logo.png}" alt="Logo" class="sidebar-logo-img" />
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-name">Exterminadora</span>
+          <span class="sidebar-brand-sub">Tejada · Sistema</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Principal</div>
+        <a href="/dashboard" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" /></svg
+          >Dashboard
+        </a>
+        <a href="/debtors" class="nav-item active">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+          >Deudores
+        </a>
+        <a href="/debts" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" /></svg
+          >Deudas
+        </a>
+        <a href="/payments" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
+          >Pagos Parciales
+        </a>
+        <a href="/reminders" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Recordatorios
+        </a>
+        <div class="nav-section-label" style="margin-top: 24px">Sistema</div>
+        <a href="/microservices" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 8 12 12 14 14" /></svg
+          >Microservicios
+        </a>
+        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" /></svg
+          >Swagger / APIs
+        </a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="user-avatar">U</div>
+        <div class="user-info">
+          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
+          <span class="user-status"
+            ><span class="status-dot"></span>JWT activo</span
+          >
+        </div>
+        <a href="/auth/logout" class="logout-btn" title="Cerrar sesión">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="16"
+            height="16"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </a>
+      </div>
+    </aside>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="20"
+              height="20"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="page-title" th:text="${debtor.name}">Deudor</h1>
+            <nav class="breadcrumb">
+              <a
+                href="/dashboard"
+                style="color: var(--text-muted); text-decoration: none"
+                >Inicio</a
+              >
+              <span class="bc-sep">›</span>
+              <a
+                href="/debtors"
+                style="color: var(--text-muted); text-decoration: none"
+                >Deudores</a
+              >
+              <span class="bc-sep">›</span>
+              <span class="bc-active" th:text="${debtor.name}">Detalle</span>
+            </nav>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="icon-btn" title="Notificaciones">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="18"
+              height="18"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
+
+        </div>
+      </header>
+
+      <!-- Botón volver -->
+      <a href="/debtors" class="back-btn">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          width="14"
+          height="14"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Volver a Deudores
+      </a>
+
+      <!-- Hero del deudor -->
+      <div class="debtor-hero">
+        <div class="debtor-hero-left">
+          <div
+            class="hero-avatar"
+            th:style="${debtor.type == 'COMPANIA'} ? 'background:linear-gradient(135deg,#29406C,#3a5490)' : 'background:linear-gradient(135deg,#4C5E1A,#6a8422)'"
+            th:text="${#strings.substring(debtor.name, 0, 1)}"
+          >
+            J
+          </div>
+          <div>
+            <div class="hero-name" th:text="${debtor.name}">Nombre Deudor</div>
+            <div class="hero-badges">
+              <span
+                th:class="${debtor.type == 'COMPANIA'} ? 'hero-badge badge-compania' : 'hero-badge badge-persona'"
+                th:text="${debtor.type}"
+                >TIPO</span
+              >
+              <span
+                class="hero-badge"
+                style="
+                  background: rgba(255, 255, 255, 0.06);
+                  color: var(--text-muted);
+                  border: 1px solid var(--border);
+                "
+                th:text="${debtor.documentType + ': ' + debtor.documentNumber}"
+                >DOC</span
+              >
+            </div>
+            <div class="hero-meta">
+              <div class="hero-meta-item" th:if="${debtor.email}">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="13"
+                  height="13"
+                >
+                  <path
+                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                  />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+                <a
+                  th:href="'mailto:' + ${debtor.email}"
+                  th:text="${debtor.email}"
+                  >email</a
+                >
+              </div>
+              <div class="hero-meta-item" th:if="${debtor.phone}">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="13"
+                  height="13"
+                >
+                  <path
+                    d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3.1 5.18 2 2 0 0 1 5.09 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L9.09 10.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
+                  />
+                </svg>
+                <span th:text="${debtor.phone}">teléfono</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a
+            th:href="@{/debts/new(debtorId=${debtor.id})}"
+            class="btn-hero-action btn-hero-primary"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              width="15"
+              height="15"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nueva Deuda
+          </a>
+          <a href="/debtors" class="btn-hero-action btn-hero-secondary">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="15"
+              height="15"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Volver
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats rápidas -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" th:text="${#lists.size(debts)}">0</div>
+          <div class="stat-lbl">Total Deudas</div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-val orange"
+            th:text="${#lists.size(debts.?[status == 'ACTIVA'])}"
+          >
+            0
+          </div>
+          <div class="stat-lbl">Deudas Activas</div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-val green"
+            th:text="${#lists.size(debts.?[status == 'PAGADA'])}"
+          >
+            0
+          </div>
+          <div class="stat-lbl">Deudas Pagadas</div>
+        </div>
+      </div>
+
+      <!-- Tabla de deudas -->
+      <div class="section-card">
+        <div class="section-card-header">
+          <div class="section-card-title">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="16"
+              height="16"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            Deudas del Deudor
+          </div>
+          <a
+            th:href="@{/debts/new(debtorId=${debtor.id})}"
+            class="btn-hero-action btn-hero-primary"
+            style="padding: 7px 14px; font-size: 0.78rem"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              width="13"
+              height="13"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            + Nueva
+          </a>
+        </div>
+
+        <table class="debts-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th>Monto Original</th>
+              <th>Saldo Actual</th>
+              <th>Moneda</th>
+              <th class="hide-mobile">Vence</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="debt : ${debts}">
+              <td>
+                <div
+                  style="font-weight: 600; color: var(--white)"
+                  th:text="${debt.description}"
+                >
+                  Descripción
+                </div>
+              </td>
+              <td
+                style="color: var(--text-muted)"
+                th:text="'RD$' + ${#numbers.formatDecimal(debt.originalAmount, 0, 'COMMA', 0, 'POINT')}"
+              >
+                RD$0
+              </td>
+              <td>
+                <div
+                  th:class="${debt.status == 'ACTIVA'} ? 'amount-activa' : 'amount-pagada'"
+                  th:text="'RD$' + ${#numbers.formatDecimal(debt.currentBalance, 0, 'COMMA', 0, 'POINT')}"
+                >
+                  RD$0
+                </div>
+              </td>
+              <td>
+                <span class="currency-pill" th:text="${debt.currency}"
+                  >DOP</span
+                >
+              </td>
+              <td
+                class="hide-mobile"
+                style="color: var(--text-muted); font-size: 0.8rem"
+                th:text="${debt.dueDate ?: '-'}"
+              >
+                ---
+              </td>
+              <td>
+                <span
+                  th:class="${debt.status == 'ACTIVA'} ? 'status-activa' : 'status-pagada'"
+                  th:text="${debt.status}"
+                  >ESTADO</span
+                >
+              </td>
+              <td>
+                <div style="display: flex; gap: 6px">
+                  <a
+                    th:href="@{/debts/{id}(id=${debt.id})}"
+                    class="action-btn"
+                    title="Ver detalle"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      width="13"
+                      height="13"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(debts)}">
+              <td colspan="7">
+                <div class="empty-debts">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    width="40"
+                    height="40"
+                    style="opacity: 0.3; display: block; margin: 0 auto 12px"
+                  >
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  No hay deudas registradas para este deudor
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("open");
+      }
+    </script>
+  </body>
+</html>

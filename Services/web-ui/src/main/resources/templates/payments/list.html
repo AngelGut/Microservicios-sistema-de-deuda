@@ -1,0 +1,1079 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pagos Parciales – Exterminadora Tejada</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
+    <style>
+      .page-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+      .toolbar-search {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--bg-card);
+        border: 1.5px solid var(--border);
+        border-radius: 9px;
+        padding: 8px 14px;
+      }
+      .toolbar-search input {
+        background: none;
+        border: none;
+        outline: none;
+        font-family: "Nunito", sans-serif;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        width: 100%;
+      }
+      .toolbar-search input::placeholder {
+        color: var(--text-muted);
+      }
+      .toolbar-search svg {
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+
+      .filter-pills {
+        display: flex;
+        gap: 6px;
+      }
+      .pill {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1.5px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: "Nunito", sans-serif;
+      }
+      .pill.active,
+      .pill:hover {
+        border-color: var(--green-light);
+        background: rgba(76, 94, 26, 0.2);
+        color: #8bc34a;
+      }
+
+      /* Tabla */
+      .payments-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .payments-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .payments-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--white);
+      }
+      .payments-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+      .meta-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4ade80;
+      }
+
+      .payments-card table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .payments-card thead tr {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid var(--border);
+      }
+      .payments-card th {
+        padding: 11px 16px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: left;
+      }
+      .payments-card td {
+        padding: 14px 16px;
+        font-size: 0.83rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        vertical-align: middle;
+      }
+      .payments-card tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .payments-card tbody tr {
+        transition: background 0.15s;
+      }
+      .payments-card tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .debtor-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .debtor-avatar-sm {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: white;
+        flex-shrink: 0;
+      }
+      .debtor-name-sm {
+        font-weight: 700;
+        color: var(--white);
+        font-size: 0.85rem;
+      }
+      .debtor-sub {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .amount-positive {
+        color: #4ade80;
+        font-weight: 800;
+        font-size: 0.92rem;
+      }
+
+      .ref-pill {
+        padding: 2px 9px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: rgba(41, 64, 108, 0.2);
+        color: #7ba7e0;
+        border: 1px solid rgba(41, 64, 108, 0.3);
+        font-family: monospace;
+      }
+
+      .status-applied {
+        background: rgba(74, 222, 128, 0.12);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+      .status-pending {
+        background: rgba(251, 146, 60, 0.12);
+        color: #fb923c;
+        border: 1px solid rgba(251, 146, 60, 0.3);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+
+      .table-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        border-top: 1px solid var(--border);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .footer-email-note {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-muted);
+        font-size: 0.73rem;
+      }
+      .footer-email-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: #4ade80;
+        flex-shrink: 0;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+      }
+      .empty-state p {
+        font-size: 0.9rem;
+        margin: 12px 0 16px;
+      }
+
+      /* Modal pago */
+      .info-box {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      .info-box-name {
+        font-weight: 800;
+        color: var(--white);
+        font-size: 0.9rem;
+      }
+      .info-box-sub {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+      .info-box-balance {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+      .info-box-balance span {
+        color: #fb923c;
+        font-weight: 800;
+      }
+
+      .notification-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(76, 94, 26, 0.12);
+        border: 1px solid rgba(76, 94, 26, 0.3);
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.78rem;
+        color: #8bc34a;
+        margin-top: 6px;
+      }
+
+      @media (max-width: 768px) {
+        .hide-mobile {
+          display: none;
+        }
+        .page-toolbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .payments-card-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img th:src="@{/images/logo.png}" alt="Logo" class="sidebar-logo-img" />
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-name">Exterminadora</span>
+          <span class="sidebar-brand-sub">Tejada · Sistema</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Principal</div>
+        <a href="/dashboard" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" /></svg
+          >Dashboard
+        </a>
+        <a href="/debtors" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+          >Deudores
+        </a>
+        <a href="/debts" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" /></svg
+          >Deudas
+        </a>
+        <a href="/payments" class="nav-item active">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
+          >Pagos Parciales
+          <span class="nav-badge" th:text="${#lists.size(payments)}">0</span>
+        </a>
+        <a href="/reminders" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Recordatorios
+        </a>
+        <div class="nav-section-label" style="margin-top: 24px">Sistema</div>
+        <a href="/microservices" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 8 12 12 14 14" /></svg
+          >Microservicios
+        </a>
+        <a
+          href="https://gateway-production-a233.up.railway.app/swagger-ui.html"
+          target="_blank"
+          class="nav-item"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" /></svg
+          >Swagger / APIs
+        </a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="user-avatar">U</div>
+        <div class="user-info">
+          <span
+            class="user-name"
+            th:text="${session.userDisplayName ?: 'Usuario'}"
+            >Usuario</span
+          >
+          <span class="user-status"
+            ><span class="status-dot"></span>JWT activo</span
+          >
+        </div>
+        <a href="/auth/logout" class="logout-btn" title="Cerrar sesión">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="16"
+            height="16"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </a>
+      </div>
+    </aside>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="20"
+              height="20"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="page-title">Pagos Parciales</h1>
+            <nav class="breadcrumb">
+              <a
+                href="/dashboard"
+                style="color: var(--text-muted); text-decoration: none"
+                >Inicio</a
+              >
+              <span class="bc-sep">›</span>
+              <span class="bc-active">Pagos Parciales</span>
+            </nav>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="icon-btn" title="Notificaciones">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="18"
+              height="18"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="btn-primary-action"
+            onclick="abrirModalPago()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              width="16"
+              height="16"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Registrar Pago
+          </button>
+        </div>
+      </header>
+
+      <!-- Error -->
+      <div th:if="${error}" class="alert-banner">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          width="16"
+          height="16"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span th:text="${error}"></span>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="page-toolbar">
+        <div class="toolbar-search">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="15"
+            height="15"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar por deudor, referencia, notas…"
+          />
+        </div>
+        <div class="filter-pills">
+          <button class="pill active" onclick="filtrar('todos', this)">
+            Todos
+          </button>
+          <button class="pill" onclick="filtrar('APPLIED', this)">
+            Aplicados
+          </button>
+          <button class="pill" onclick="filtrar('PENDING', this)">
+            Pendientes
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla de pagos -->
+      <div class="payments-card">
+        <div class="payments-card-header">
+          <div class="payments-card-title">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="16"
+              height="16"
+            >
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            Historial de Pagos Parciales
+          </div>
+        </div>
+
+        <table id="paymentTable">
+          <thead>
+            <tr>
+              <th>Deudor</th>
+              <th>Deuda</th>
+              <th>Monto Pagado</th>
+              <th class="hide-mobile">Referencia</th>
+              <th class="hide-mobile">Notas</th>
+              <th>Estado</th>
+              <th class="hide-mobile">Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              th:each="payment : ${payments}"
+              th:data-status="${payment.status}"
+              class="payment-row"
+            >
+              <td>
+                <div class="debtor-cell">
+                  <div
+                    class="debtor-avatar-sm"
+                    style="background: #4c5e1a"
+                    th:text="'P'"
+                  >
+                    P
+                  </div>
+                  <div>
+                    <div
+                      class="debtor-name-sm"
+                      th:text="${payment.debtId ?: 'Deudor'}"
+                    >
+                      Nombre
+                    </div>
+                    <div
+                      class="debtor-sub"
+                      th:text="'ID: ' + ${payment.debtId != null ? #strings.substring(payment.debtId,0,8) : '---'}"
+                    >
+                      id
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td
+                style="color: var(--text-muted); font-size: 0.82rem"
+                th:text="${payment.debtDescription ?: '-'}"
+              >
+                Descripción
+              </td>
+              <td>
+                <span
+                  class="amount-positive"
+                  th:text="'+RD$' + ${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT')}"
+                  >+RD$0</span
+                >
+              </td>
+              <td class="hide-mobile">
+                <span
+                  th:if="${payment.reference}"
+                  class="ref-pill"
+                  th:text="${payment.reference}"
+                  >REF</span
+                >
+                <span
+                  th:unless="${payment.reference}"
+                  style="color: var(--text-muted)"
+                  >—</span
+                >
+              </td>
+              <td
+                class="hide-mobile"
+                style="color: var(--text-muted); font-size: 0.8rem"
+                th:text="${payment.notes ?: '—'}"
+              >
+                —
+              </td>
+              <td>
+                <span
+                  th:class="${payment.status == 'APPLIED'} ? 'status-applied' : 'status-pending'"
+                  th:text="${payment.status ?: 'APPLIED'}"
+                  >APPLIED</span
+                >
+              </td>
+              <td
+                class="hide-mobile"
+                style="color: var(--text-muted); font-size: 0.8rem"
+                th:text="${payment.paidAt ?: '-'}"
+              >
+                —
+              </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(payments)}" id="emptyRow">
+              <td colspan="7">
+                <div class="empty-state">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    width="48"
+                    height="48"
+                    style="opacity: 0.3; display: block; margin: 0 auto"
+                  >
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path
+                      d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                    />
+                  </svg>
+                  <p>No hay pagos registrados aún</p>
+                  <button
+                    type="button"
+                    class="btn-primary-action"
+                    onclick="abrirModalPago()"
+                  >
+                    + Registrar primer pago
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr id="noResults" style="display: none">
+              <td colspan="7">
+                <div class="empty-state">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    width="48"
+                    height="48"
+                    style="opacity: 0.3; display: block; margin: 0 auto"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <p>No se encontraron resultados</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="table-footer">
+          <span id="countLabel">
+            <strong th:text="${#lists.size(payments)}">0</strong> pagos
+            registrados
+          </span>
+          <div class="footer-email-note">
+            <div class="footer-email-dot"></div>
+            Recibo de email enviado en cada pago
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ══ MODAL REGISTRAR PAGO ══ -->
+    <div class="modal-backdrop" id="modalPago">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <div class="modal-title">
+            <div
+              class="modal-title-icon"
+              style="background: linear-gradient(135deg, #29406c, #3a5490)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                stroke-width="2.5"
+                width="18"
+                height="18"
+              >
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
+            </div>
+            <span>Registrar Pago Parcial</span>
+          </div>
+          <button class="modal-close" onclick="cerrarModalPago()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="16"
+              height="16"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <form
+          id="formPago"
+          method="post"
+          th:action="@{/payments}"
+          onsubmit="return submitPago(event);"
+        >
+          <input type="hidden" name="debtId" id="pagoDebtId" />
+          <div class="modal-body">
+            <!-- Selector de deuda -->
+            <div class="form-field">
+              <label class="form-label"
+                >Deuda <span class="required">*</span></label
+              >
+              <select
+                id="selectDeuda"
+                class="form-select"
+                onchange="onDeudaChange()"
+                required
+              >
+                <option value="">— Seleccionar deuda activa —</option>
+                <option
+                  th:each="debt : ${activeDebts}"
+                  th:value="${debt.id}"
+                  th:text="${debt.description + ' · RD$' + debt.currentBalance}"
+                  th:data-balance="${debt.currentBalance}"
+                  th:data-desc="${debt.description}"
+                  th:data-debtor="${debt.debtorId ?: '---'}"
+                ></option>
+              </select>
+              <span class="field-error" id="errorDeuda"
+                >Selecciona una deuda.</span
+              >
+            </div>
+
+            <!-- Info box (se muestra al seleccionar deuda) -->
+            <div class="info-box" id="infoBox" style="display: none">
+              <div class="info-box-name" id="infoDeudor">Deudor</div>
+              <div class="info-box-sub" id="infoDesc">Descripción</div>
+              <div class="info-box-balance">
+                Saldo actual: <span id="infoBalance">RD$0</span>
+              </div>
+            </div>
+
+            <!-- Monto + Referencia -->
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label" for="pagoMonto"
+                  >Monto del Pago <span class="required">*</span></label
+                >
+                <div class="form-input-wrap">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="15"
+                    height="15"
+                  >
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path
+                      d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                    />
+                  </svg>
+                  <input
+                    type="number"
+                    id="pagoMonto"
+                    name="amount"
+                    class="form-input"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0.01"
+                    required
+                  />
+                </div>
+                <span class="field-error" id="errorMonto"
+                  >Ingresa un monto válido.</span
+                >
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="pagoRef"
+                  >Referencia
+                  <span style="color: var(--text-muted); font-weight: 400"
+                    >(opcional)</span
+                  ></label
+                >
+                <div class="form-input-wrap">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="15"
+                    height="15"
+                  >
+                    <path
+                      d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                    />
+                    <line x1="7" y1="7" x2="7.01" y2="7" />
+                  </svg>
+                  <input
+                    type="text"
+                    id="pagoRef"
+                    name="reference"
+                    class="form-input"
+                    placeholder="REF-001, TRF-002…"
+                    maxlength="100"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Notas -->
+            <div class="form-field">
+              <label class="form-label" for="pagoNotes"
+                >Notas
+                <span style="color: var(--text-muted); font-weight: 400"
+                  >(opcional)</span
+                ></label
+              >
+              <div class="form-input-wrap">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="15"
+                  height="15"
+                >
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                </svg>
+                <input
+                  type="text"
+                  id="pagoNotes"
+                  name="notes"
+                  class="form-input"
+                  placeholder="Observaciones del pago…"
+                  maxlength="300"
+                />
+              </div>
+            </div>
+
+            <!-- Aviso notificación -->
+            <div class="notification-bar">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="14"
+                height="14"
+              >
+                <path
+                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              Se enviará recibo de pago por correo electrónico
+              (notification-service :8086)
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-cancel"
+              onclick="cerrarModalPago()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn-save"
+              id="btnAplicar"
+              style="
+                background: linear-gradient(135deg, #29406c, #3a5490);
+                box-shadow: 0 4px 14px rgba(41, 64, 108, 0.4);
+              "
+            >
+              <svg
+                class="btn-save-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                width="15"
+                height="15"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <div class="btn-spinner"></div>
+              Aplicar Pago
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("open");
+      }
+
+      // ── Búsqueda ──
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", function () {
+          const q = this.value.toLowerCase();
+          const rows = document.querySelectorAll(
+            "#paymentTable tbody tr.payment-row",
+          );
+          let visible = 0;
+          rows.forEach((row) => {
+            const match = row.textContent.toLowerCase().includes(q);
+            row.style.display = match ? "" : "none";
+            if (match) visible++;
+          });
+          document.getElementById("noResults").style.display =
+            visible === 0 ? "" : "none";
+          document.getElementById("countLabel").innerHTML =
+            `<strong>${visible}</strong> pagos registrados`;
+        });
+
+      // ── Filtros ──
+      function filtrar(estado, btn) {
+        document
+          .querySelectorAll(".pill")
+          .forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        const rows = document.querySelectorAll(
+          "#paymentTable tbody tr.payment-row",
+        );
+        let visible = 0;
+        rows.forEach((row) => {
+          const match = estado === "todos" || row.dataset.status === estado;
+          row.style.display = match ? "" : "none";
+          if (match) visible++;
+        });
+        document.getElementById("countLabel").innerHTML =
+          `<strong>${visible}</strong> pagos registrados`;
+      }
+
+      // ── Modal ──
+      function abrirModalPago(debtId, desc, balance, debtorName) {
+        if (debtId) {
+          document.getElementById("selectDeuda").value = debtId;
+          onDeudaChange();
+        }
+        document.getElementById("modalPago").classList.add("open");
+        document.body.style.overflow = "hidden";
+        setTimeout(() => document.getElementById("pagoMonto").focus(), 100);
+      }
+      function cerrarModalPago() {
+        document.getElementById("modalPago").classList.remove("open");
+        document.body.style.overflow = "";
+        document.getElementById("formPago").reset();
+        document.getElementById("infoBox").style.display = "none";
+      }
+
+      function onDeudaChange() {
+        const sel = document.getElementById("selectDeuda");
+        const opt = sel.options[sel.selectedIndex];
+        if (sel.value) {
+          document.getElementById("pagoDebtId").value = sel.value;
+          document.getElementById("infoDeudor").textContent =
+            opt.dataset.debtor || "Deudor";
+          document.getElementById("infoDesc").textContent =
+            opt.dataset.desc || "";
+          document.getElementById("infoBalance").textContent =
+            "RD$" + Number(opt.dataset.balance || 0).toLocaleString("es-DO");
+          document.getElementById("infoBox").style.display = "block";
+        } else {
+          document.getElementById("infoBox").style.display = "none";
+        }
+      }
+
+      function submitPago(e) {
+        e.preventDefault();
+        let valid = true;
+        const deuda = document.getElementById("selectDeuda").value;
+        document
+          .getElementById("errorDeuda")
+          .classList.toggle("visible", !deuda);
+        if (!deuda) valid = false;
+        const monto = parseFloat(document.getElementById("pagoMonto").value);
+        document
+          .getElementById("errorMonto")
+          .classList.toggle("visible", !monto || monto <= 0);
+        if (!monto || monto <= 0) valid = false;
+        if (!valid) return false;
+        const btn = document.getElementById("btnAplicar");
+        btn.classList.add("loading");
+        btn.disabled = true;
+        document.getElementById("formPago").submit();
+        return false;
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") cerrarModalPago();
+      });
+      document
+        .getElementById("modalPago")
+        .addEventListener("click", function (e) {
+          if (e.target === this) cerrarModalPago();
+        });
+    </script>
+  </body>
+</html>

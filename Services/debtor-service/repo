@@ -1,0 +1,40 @@
+@Service
+public class DebtorServiceImpl implements DebtorService {
+
+    private final DebtorRepository repository;
+
+    public DebtorServiceImpl(DebtorRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public List<Debtor> findAll() {
+        return repository.findAll();
+    }
+
+    @Override
+    public Debtor findById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Debtor not found"));
+    }
+
+    @Service
+public class DebtorServiceImpl implements DebtorService {
+
+    private final DebtorRepository repository;
+
+    public DebtorServiceImpl(DebtorRepository repository) {
+        this.repository = repository;
+    }
+
+}
+
+}
+
+repository/DebtorRepository.java
+
+public interface DebtorRepository extends JpaRepository<Debtor, Long> {
+
+    Optional<Debtor> findByDocument(String document);
+
+}

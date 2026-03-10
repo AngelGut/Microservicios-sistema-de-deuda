@@ -1,0 +1,14 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nueva Deuda – Exterminadora Tejada</title>
+    <script th:inline="javascript">
+      // Redirige a la lista de deudas y abre el modal con el deudor preseleccionado
+      var debtorId = /*[[${debtorId}]]*/ "";
+      window.location.replace("/debts?openModal=true&debtorId=" + debtorId);
+    </script>
+  </head>
+  <body></body>
+</html>

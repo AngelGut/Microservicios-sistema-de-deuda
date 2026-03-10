@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>microservicios-sistema-de-deuda</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>Services/common-lib</module>
+        <module>Services/api-gateway</module>
+        <module>Services/auth-service</module>
+        <module>Services/debt-service</module>
+        <module>Services/debtor-service</module>
+        <module>Services/fx-service</module>
+        <module>Services/ai-risk-service</module>
+        <module>Services/payment-service</module>
+        <module>Services/user-service</module>
+        <module>Services/web-ui</module>
+    </modules>
+</project>
