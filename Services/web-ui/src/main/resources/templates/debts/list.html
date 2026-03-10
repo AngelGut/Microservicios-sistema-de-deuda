@@ -451,7 +451,7 @@
       <div class="sidebar-user">
         <div class="user-avatar">U</div>
         <div class="user-info">
-          <span class="user-name">Usuario</span>
+          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
           <span class="user-status"
             ><span class="status-dot"></span>JWT activo</span
           >
