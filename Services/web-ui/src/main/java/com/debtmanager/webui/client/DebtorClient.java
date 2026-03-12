@@ -37,12 +37,13 @@ public class DebtorClient {
     }
 
     private DebtorResponse mapToResponse(Map<String, Object> m) {
-        // debtor-service devuelve: id (Long), name, document, email, type
+        // debtor-service devuelve: id (Long), name, document, email, type, phone
         // document almacenado como "CEDULA-40255357705" o "RNC-131234567"
         String id = m.get("id") != null ? m.get("id").toString() : null;
         String name = (String) m.get("name");
         String type = (String) m.get("type");
         String email = (String) m.get("email");
+        String phone = (String) m.get("phone");
         String rawDoc = m.get("document") != null ? m.get("document").toString() : "";
         String documentType = null;
         String documentNumber = rawDoc;
@@ -52,7 +53,7 @@ public class DebtorClient {
             documentType = rawDoc.substring(0, idx);
             documentNumber = rawDoc.substring(idx + 1);
         }
-        return new DebtorResponse(id, name, type, documentType, documentNumber, email, null);
+        return new DebtorResponse(id, name, type, documentType, documentNumber, email, phone);
     }
 
     public List<DebtorResponse> getAll(String token) {
