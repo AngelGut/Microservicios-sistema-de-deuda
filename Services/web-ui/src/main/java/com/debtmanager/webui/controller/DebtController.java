@@ -92,10 +92,11 @@ public class DebtController {
             @RequestParam String description,
             @RequestParam BigDecimal originalAmount,
             @RequestParam String currency,
+            @RequestParam(required = false) String dueDate,
             HttpSession session) {
         try {
             String token = (String) session.getAttribute("jwt");
-            DebtRequest request = new DebtRequest(debtorId, description, originalAmount, currency);
+            DebtRequest request = new DebtRequest(debtorId, description, originalAmount, currency, dueDate);
             debtService.create(request, token);
             return "redirect:/debtors/" + debtorId;
         } catch (Exception e) {

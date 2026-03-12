@@ -6,5 +6,6 @@ public record DebtRequest(
         String debtorId,
         String description,
         BigDecimal originalAmount,
-        String currency) {
+        String currency,
+        String dueDate) {
 }
