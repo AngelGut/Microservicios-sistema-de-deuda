@@ -1325,6 +1325,9 @@
         document.getElementById("modalNuevaDeuda").classList.remove("open");
         document.body.style.overflow = "";
         document.getElementById("formNuevaDeuda").reset();
+        const btn = document.getElementById("btnGuardarDeuda");
+        btn.classList.remove("loading");
+        btn.disabled = false;
       }
       function onDeudorChange() {
         document.getElementById("inputDebtorId").value =
@@ -1351,6 +1354,13 @@
         const btn = document.getElementById("btnGuardarDeuda");
         btn.classList.add("loading");
         btn.disabled = true;
+
+        // Re-enable button after 5 seconds as fallback (in case page doesn't reload)
+        setTimeout(() => {
+          btn.classList.remove("loading");
+          btn.disabled = false;
+        }, 5000);
+
         document.getElementById("formNuevaDeuda").submit();
         return false;
       }
