@@ -787,7 +787,7 @@
         <div class="table-footer">
           <span id="countLabel"
             >Mostrando
-            <strong th:text="${#lists.size(debts)}">0</strong> deudas</span
+            <strong th:text="${debts != null ? #lists.size(debts) : 0}">0</strong> deudas</span
           >
         </div>
       </div>
