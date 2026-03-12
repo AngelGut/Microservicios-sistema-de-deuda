@@ -53,21 +53,26 @@ public class DebtController {
 
     /**
      * GET /debts/summary — KPIs para el dashboard.
+     * Parámetro opcional ?currency=DOP|USD para filtrar por moneda.
      * DEBE ir ANTES de /{id} para que "summary" no sea tratado como un ID.
      */
     @GetMapping("/summary")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getSummary() {
-        List<Debt> all = debtService.getAllDebts();
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSummary(
+            @RequestParam(required = false) String currency) {
 
-        long totalActivas = all.stream().filter(d -> "ACTIVA".equals(d.getStatus())).count();
-        long totalPagadas = all.stream().filter(d -> "PAGADA".equals(d.getStatus())).count();
+        List<Debt> debts = (currency != null && !currency.isBlank())
+                ? debtService.getDebtsByCurrency(currency)
+                : debtService.getAllDebts();
 
-        BigDecimal montoTotalActivo = all.stream()
+        long totalActivas = debts.stream().filter(d -> "ACTIVA".equals(d.getStatus())).count();
+        long totalPagadas = debts.stream().filter(d -> "PAGADA".equals(d.getStatus())).count();
+
+        BigDecimal montoTotalActivo = debts.stream()
                 .filter(d -> "ACTIVA".equals(d.getStatus()))
                 .map(Debt::getCurrentBalance)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal montoTotalCobrado = all.stream()
+        BigDecimal montoTotalCobrado = debts.stream()
                 .filter(d -> "PAGADA".equals(d.getStatus()))
                 .map(Debt::getOriginalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

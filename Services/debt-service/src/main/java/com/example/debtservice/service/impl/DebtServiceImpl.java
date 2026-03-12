@@ -72,6 +72,11 @@ public class DebtServiceImpl implements IDebtService {
         return debtRepository.findByDebtorId(debtorId);
     }
 
+    @Override
+    public List<Debt> getDebtsByCurrency(String currency) {
+        return debtRepository.findByCurrency(currency);
+    }
+
     /**
      * Obtiene una deuda por su ID.
      * Si no existe lanza una excepción 404 usando ApiException de common-lib.

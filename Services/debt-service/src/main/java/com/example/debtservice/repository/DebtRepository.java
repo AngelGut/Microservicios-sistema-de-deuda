@@ -10,4 +10,6 @@ import java.util.List;
 public interface DebtRepository extends JpaRepository<Debt, String> {
 
     List<Debt> findByDebtorId(String debtorId);
+
+    List<Debt> findByCurrency(String currency);
 }
