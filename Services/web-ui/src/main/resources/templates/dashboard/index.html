@@ -380,7 +380,7 @@
           <div class="kpi-body">
             <span class="kpi-label">Total Deuda Activa</span>
             <span class="kpi-value kpi-value-lg">
-              $
+              USD$
               <span
                 th:text="${#numbers.formatDecimal(totalActiveAmountUSD ?: 0, 0, 'COMMA', 0, 'POINT')}"
                 >0</span
@@ -409,7 +409,7 @@
           <div class="kpi-body">
             <span class="kpi-label">Cobrado en Pagos</span>
             <span class="kpi-value kpi-value-lg">
-              $
+              USD$
               <span
                 th:text="${#numbers.formatDecimal(totalCollectedUSD ?: 0, 0, 'COMMA', 0, 'POINT')}"
                 >0</span
