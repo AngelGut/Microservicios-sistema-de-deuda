@@ -64,19 +64,28 @@ public class DashboardService {
         model.put("totalDebtors", debtors.size());
         model.put("recentDebtors", debtors.stream().limit(10).toList());
 
-        // ── 2. Resumen de deudas (UNA llamada) ────────────────────────────────
-        DebtSummaryResponse summary = debtClient.getSummary(token);
-        model.put("activeDebts", summary.totalActivas());
-        model.put("paidDebts", summary.totalPagadas());
-        model.put("totalActiveAmount", summary.montoTotalActivo());
-        model.put("totalCollected", summary.montoTotalCobrado());
+        // ── 2. Resumen de deudas por moneda ────────────────────────────────────
+        DebtSummaryResponse summaryDOP = debtClient.getSummaryByDOP(token);
+        DebtSummaryResponse summaryUSD = debtClient.getSummaryByUSD(token);
 
-        // Para el donut chart
-        long totalDeudas = summary.totalActivas() + summary.totalPagadas();
+        // DOP
+        model.put("activeDebts", summaryDOP.totalActivas());
+        model.put("paidDebts", summaryDOP.totalPagadas());
+        model.put("totalActiveAmount", summaryDOP.montoTotalActivo());
+        model.put("totalCollected", summaryDOP.montoTotalCobrado());
+
+        // USD
+        model.put("activeDebtsUSD", summaryUSD.totalActivas());
+        model.put("paidDebtsUSD", summaryUSD.totalPagadas());
+        model.put("totalActiveAmountUSD", summaryUSD.montoTotalActivo());
+        model.put("totalCollectedUSD", summaryUSD.montoTotalCobrado());
+
+        // Para el donut chart (DOP)
+        long totalDeudas = summaryDOP.totalActivas() + summaryDOP.totalPagadas();
         int cartPct = totalDeudas == 0 ? 0
-                : (int) Math.round((summary.totalActivas() * 100.0) / totalDeudas);
-        model.put("cartActivas", summary.totalActivas());
-        model.put("cartPagadas", summary.totalPagadas());
+                : (int) Math.round((summaryDOP.totalActivas() * 100.0) / totalDeudas);
+        model.put("cartActivas", summaryDOP.totalActivas());
+        model.put("cartPagadas", summaryDOP.totalPagadas());
         model.put("cartTotal", debtors.size());
         model.put("cartPct", cartPct);
 
