@@ -16,18 +16,18 @@ public interface DebtClient {
     /**
      * Consulta una deuda por ID en debt-service.
      *
-     * @param debtId ID de la deuda a consultar
+     * @param debtId ID de la deuda a consultar (UUID String)
      * @return {@link Optional} con la deuda si se encontró, vacío si no existe
      *         o si debt-service no responde (fallback de Resilience4j).
      */
-    Optional<DebtResponse> findById(Long debtId);
+    Optional<DebtResponse> findById(String debtId);
 
     /**
      * Notifica a debt-service que se registró un pago para una deuda,
      * para que actualice el saldo y estado.
      *
-     * @param debtId ID de la deuda
+     * @param debtId ID de la deuda (UUID String)
      * @param paidAmount monto que se acaba de pagar
      */
-    void notifyPayment(Long debtId, java.math.BigDecimal paidAmount);
+    void notifyPayment(String debtId, java.math.BigDecimal paidAmount);
 }

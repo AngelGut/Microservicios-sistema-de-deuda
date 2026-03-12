@@ -38,9 +38,9 @@ public class PaymentController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getPayments(
-            @RequestParam(required = false) Long debtId) {
+            @RequestParam(required = false) String debtId) {
 
-        List<PaymentResponse> payments = (debtId != null)
+        List<PaymentResponse> payments = (debtId != null && !debtId.isBlank())
                 ? paymentService.getPaymentsByDebt(debtId)
                 : paymentService.getAllPayments();
 
@@ -80,7 +80,7 @@ public class PaymentController {
      */
     @GetMapping("/by-debt/{debtId}")
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getPaymentsByDebt(
-            @PathVariable Long debtId) {
+            @PathVariable String debtId) {
         List<PaymentResponse> payments = paymentService.getPaymentsByDebt(debtId);
         return ResponseEntity.ok(ApiResponse.ok(payments, TraceIdUtil.getTraceId()));
     }

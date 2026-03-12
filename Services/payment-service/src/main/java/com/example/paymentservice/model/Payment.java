@@ -22,8 +22,8 @@ public class Payment {
     private Long id;
 
     /** ID de la deuda asociada (referencia externa a debt-service). */
-    @Column(name = "debt_id", nullable = false)
-    private Long debtId;
+    @Column(name = "debt_id", nullable = false, length = 36)
+    private String debtId;
 
     /** Monto del pago. Nunca puede ser <= 0. */
     @Column(nullable = false)
@@ -54,7 +54,7 @@ public class Payment {
         // Requerido por JPA
     }
 
-    public Payment(Long debtId, BigDecimal amount, LocalDate paymentDate, String note) {
+    public Payment(String debtId, BigDecimal amount, LocalDate paymentDate, String note) {
         this.debtId = debtId;
         this.amount = amount;
         this.paymentDate = paymentDate;
@@ -67,7 +67,7 @@ public class Payment {
         return id;
     }
 
-    public Long getDebtId() {
+    public String getDebtId() {
         return debtId;
     }
 
