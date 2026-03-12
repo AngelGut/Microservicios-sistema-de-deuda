@@ -15,6 +15,7 @@
 ## 🔴 PROBLEMA 1: web-ui no responde en Railway
 
 ### Root Cause
+
 ```properties
 # ANTES (INCORRECTO)
 server.port=8090  # Puerto hardcodeado
@@ -23,6 +24,7 @@ server.port=8090  # Puerto hardcodeado
 Railway inyecta el puerto dinámicamente via variable `${PORT}`. Si el servidor no escucha en ese puerto, Railway **no puede enrutar el tráfico** → servicio caído.
 
 ### Fix
+
 **Archivo**: `Services/web-ui/src/main/resources/application.properties`
 
 ```properties
@@ -32,6 +34,7 @@ server.port=${PORT:8090}  # Lee ${PORT} de Railway, default 8090 para local
 
 **Impacto**: 1 línea
 **Por qué funciona**:
+
 - En Railway: `${PORT}` se reemplaza con el puerto dinámico asignado (ej: 51234)
 - En local: usa default 8090
 - Spring resuelve `${PORT}` desde variables de entorno antes de iniciar
@@ -41,18 +44,21 @@ server.port=${PORT:8090}  # Lee ${PORT} de Railway, default 8090 para local
 ## 🔴 PROBLEMA 2: payment-service rechaza tokens con 401
 
 ### Root Cause
+
 ```properties
 # ANTES (INCORRECTO)
 app.jwt.secret=${JWT_SECRET:216/26Bhnb8aGxAunrkrMqgKAVdiakCb12AqGFdA1ugBwBOCPhevH6HBjzgJKPKwxhwkYOLzZPkNc71LA/LJCA==}
 ```
 
 **Problema**:
+
 - `auth-service` firma tokens con una clave (desde `JWT_SECRET`)
 - `payment-service` verifica tokens con **otra clave diferente** (el default hardcodeado)
 - JwtAuthFilter de payment-service falla al parsear: `Invalid signature`
 - Resultado: 401 Unauthorized en TODOS los endpoints protegidos
 
 ### Fix
+
 **Archivo**: `Services/payment-service/src/main/resources/application.properties`
 
 ```properties
@@ -66,11 +72,13 @@ app.jwt.secret=${JWT_SECRET}
 **Cambios de código**: NINGUNO. El `JwtAuthFilter.java` ya lee `${app.jwt.secret}` correctamente.
 
 **Por qué funciona**:
+
 - Ahora payment-service intenta leer `JWT_SECRET` desde Railway
 - Si la variable está configurada en Railway con el MISMO valor que auth-service → tokens se verifican correctamente
 - El servicio NO tiene default hardcodeado → fuerza al usuario a configurar la variable en Railway
 
 **En Railway**:
+
 ```
 JWT_SECRET = FdQcQwFpqKWUkIIDyYEJJDOfDb13RpjEzdG13G1sWvmDhBIJWQiC47IgR5p1YPzYXIRm5Ha04wJzA9XUhwLrhg==
 ```
@@ -80,17 +88,20 @@ JWT_SECRET = FdQcQwFpqKWUkIIDyYEJJDOfDb13RpjEzdG13G1sWvmDhBIJWQiC47IgR5p1YPzYXIR
 ## 🔴 PROBLEMA 3: user-service rechaza tokens con 401
 
 ### Root Cause
+
 ```properties
 # ANTES (INCORRECTO)
 jwt.secret=QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoxMjM0NTY3ODkwQUJDREVGR0hJSktMTU5PUA==
 ```
 
 Mismo problema que payment-service:
+
 - Valor hardcodeado diferente al de auth-service
 - JwtService falla al validar tokens
 - 401 en endpoints protegidos
 
 ### Fix
+
 **Archivo**: `Services/user-service/src/main/resources/application.properties`
 
 ```properties
@@ -148,12 +159,14 @@ jwt.secret=${JWT_SECRET}
 ## 📋 CHECKLIST DE IMPLEMENTACIÓN
 
 ### Para auth-service (sin cambios)
+
 - ✅ Ya tiene: `jwt.secret=${JWT_SECRET}`
 - ✅ Ya genera tokens correctamente
 - ✅ DataInitializer crea admin automático
 - ✅ NO requiere cambios
 
 ### Para payment-service
+
 - [ ] Editar: `Services/payment-service/src/main/resources/application.properties`
 - [ ] Cambiar línea con `app.jwt.secret`
 - [ ] Remover default hardcodeado
@@ -162,6 +175,7 @@ jwt.secret=${JWT_SECRET}
 - [ ] Hacer commit
 
 ### Para user-service
+
 - [ ] Editar: `Services/user-service/src/main/resources/application.properties`
 - [ ] Cambiar línea con `jwt.secret`
 - [ ] Remover valor hardcodeado
@@ -170,12 +184,14 @@ jwt.secret=${JWT_SECRET}
 - [ ] Hacer commit
 
 ### Para web-ui
+
 - [ ] Editar: `Services/web-ui/src/main/resources/application.properties`
 - [ ] Cambiar línea con `server.port`
 - [ ] Resultado: `server.port=${PORT:8090}`
 - [ ] Hacer commit
 
 ### En Railway Dashboard
+
 - [ ] Crear variable `JWT_SECRET` = `FdQcQwFpqKWUkIIDyYEJJDOfDb13RpjEzdG13G1sWvmDhBIJWQiC47IgR5p1YPzYXIRm5Ha04wJzA9XUhwLrhg==`
 - [ ] Configurar en servicios:
   - [ ] auth-service
@@ -185,6 +201,7 @@ jwt.secret=${JWT_SECRET}
 - [ ] Triggerear redeploy en cada servicio
 
 ### Verificación
+
 - [ ] `web-ui`: Status = ACTIVE, responde en puerto dinámico
 - [ ] `payment-service`: Status = ACTIVE, tokens validados ✓
 - [ ] `user-service`: Status = ACTIVE, tokens validados ✓
@@ -300,3 +317,5 @@ auth-service   → ✅ Genera tokens correctos (sin cambios)
 ```
 
 **Sistema sincronizado y funcional en Railway** 🚀
+
+cambios 12-3-26
