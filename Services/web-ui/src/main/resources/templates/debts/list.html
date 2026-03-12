@@ -696,7 +696,7 @@
                     th:if="${debt.status == 'ACTIVA'}"
                     class="action-btn pay"
                     title="Registrar pago"
-                    th:onclick="'abrirModalPago(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\',' + ${debt.currentBalance} + ',\'' + ${debt.currency} + '\')'"
+                    th:attr="onclick='abrirModalPago(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\',' + ${debt.currentBalance} + ',\'' + ${debt.currency} + '\')'"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -714,7 +714,7 @@
                   <button
                     class="action-btn"
                     title="Historial de pagos"
-                    th:onclick="'abrirHistorial(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\')'"
+                    th:attr="onclick='abrirHistorial(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\')'"
                   >
                     <svg
                       viewBox="0 0 24 24"
