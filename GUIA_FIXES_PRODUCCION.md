@@ -318,4 +318,4 @@ auth-service   → ✅ Genera tokens correctos (sin cambios)
 
 **Sistema sincronizado y funcional en Railway** 🚀
 
-cambios 12-3-26
+cambios 12-3-26 de nuevo
