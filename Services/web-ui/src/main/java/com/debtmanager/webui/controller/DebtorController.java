@@ -56,7 +56,7 @@ public class DebtorController {
             model.addAttribute("debts", new ArrayList<>());
         }
         try {
-            model.addAttribute("aiRisk", aiRiskClient.getRiskByDebtorId(id, token));
+            model.addAttribute("aiRisk", aiRiskClient.recalculate(id, token));
         } catch (Exception e) {
             model.addAttribute("aiRisk", null);
         }

@@ -84,4 +84,56 @@ public class AiRiskClient {
         }
         return FALLBACK;
     }
+
+    public AiRiskResponse recalculate(String debtorId, String token) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    gatewayUrl + "/api/v1/risk/recalculate/" + debtorId,
+                    HttpMethod.POST,
+                    entity,
+                    String.class);
+
+            if (response.getBody() != null) {
+                JsonNode root = objectMapper.readTree(response.getBody());
+                JsonNode data = root.path("data");
+
+                String riskLevel = data.path("riskLevel").asText("NO_DISPONIBLE");
+                String status = switch (riskLevel) {
+                    case "GOOD_CLIENT" -> "FIABLE";
+                    case "LOW_RISK" -> "REVISION";
+                    case "HIGH_RISK" -> "BLOQUEADO";
+                    default -> "NO_DISPONIBLE";
+                };
+
+                String explanation = "Score: "
+                        + String.format("%.0f", data.path("riskScore").asDouble(0))
+                        + " | Días mora: " + data.path("totalDaysLate").asInt(0);
+
+                Double confidence = data.path("aiScore").isNull() ? null
+                        : data.path("aiScore").asDouble() / 100.0;
+
+                List<String> recs = new ArrayList<>();
+                JsonNode recsNode = data.path("aiRecommendations");
+                if (recsNode.isArray()) {
+                    recsNode.forEach(n -> recs.add(n.asText()));
+                }
+
+                return new AiRiskResponse(
+                        status, explanation, confidence,
+                        data.path("riskScore").asDouble(0.0),
+                        data.path("totalDaysLate").asInt(0),
+                        data.path("latePaymentCount").asInt(0),
+                        data.path("paymentCount").asInt(0),
+                        recs);
+            }
+        } catch (Exception e) {
+            log.warn("[AiRiskClient] recalculate no disponible para deudor {}: {}",
+                    debtorId, e.getMessage());
+        }
+        return FALLBACK;
+    }
 }
