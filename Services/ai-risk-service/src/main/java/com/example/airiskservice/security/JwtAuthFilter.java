@@ -96,4 +96,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         ApiErrorResponse body = ApiErrorResponse.of("AUTH_401", message, TraceIdUtil.getTraceId());
         objectMapper.writeValue(response.getWriter(), body);
     }
+    // comentando
 }
