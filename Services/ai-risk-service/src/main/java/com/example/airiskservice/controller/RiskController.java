@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/risk")
+@RequestMapping("/api/v1/risk")
 @Tag(name = "Risk", description = "Análisis de riesgo crediticio de clientes")
 @SecurityRequirement(name = "bearerAuth")
 public class RiskController {
