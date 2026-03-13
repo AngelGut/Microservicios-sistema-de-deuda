@@ -4,8 +4,8 @@ import com.example.airiskservice.dto.response.RiskResponse;
 import java.util.List;
 
 public interface RiskService {
-    RiskResponse getRiskByClient(Long clientId);
+    RiskResponse getRiskByClient(String clientId);
     List<RiskResponse> getHighRiskClients();
-    RiskResponse recalculate(Long clientId);
+    RiskResponse recalculate(String clientId);
     void recalculateAll();
 }

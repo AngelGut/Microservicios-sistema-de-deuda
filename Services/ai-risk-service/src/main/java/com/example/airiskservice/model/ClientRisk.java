@@ -18,7 +18,7 @@ public class ClientRisk {
     private Long id;
 
     @Column(name = "client_id", nullable = false, unique = true)
-    private Long clientId;
+    private String clientId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "risk_level", nullable = false)
@@ -60,7 +60,7 @@ public class ClientRisk {
 
     protected ClientRisk() {}
 
-    public ClientRisk(Long clientId) {
+    public ClientRisk(String clientId) {
         this.clientId = clientId;
         this.riskLevel = RiskLevel.GOOD_CLIENT;
         this.riskScore = 0.0;
@@ -72,7 +72,7 @@ public class ClientRisk {
 
     // ── Getters ──────────────────────────────────────────────
     public Long getId()                  { return id; }
-    public Long getClientId()            { return clientId; }
+    public String getClientId()          { return clientId; }
     public RiskLevel getRiskLevel()      { return riskLevel; }
     public Double getRiskScore()         { return riskScore; }
     public Integer getTotalDaysLate()    { return totalDaysLate; }

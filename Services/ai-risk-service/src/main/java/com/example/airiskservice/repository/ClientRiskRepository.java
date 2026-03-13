@@ -16,9 +16,9 @@ import java.util.Optional;
 @Repository
 public interface ClientRiskRepository extends JpaRepository<ClientRisk, Long> {
 
-    Optional<ClientRisk> findByClientId(Long clientId);
+    Optional<ClientRisk> findByClientId(String clientId);
 
     List<ClientRisk> findByRiskLevel(RiskLevel riskLevel);
 
-    boolean existsByClientId(Long clientId);
+    boolean existsByClientId(String clientId);
 }

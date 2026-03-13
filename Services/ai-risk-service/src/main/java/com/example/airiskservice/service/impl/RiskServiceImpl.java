@@ -44,8 +44,9 @@ public class RiskServiceImpl implements RiskService {
 
     @Override
     @Cacheable(value = "clientRisk", key = "#clientId")
-    public RiskResponse getRiskByClient(Long clientId) {
-        return clientRiskRepository.findByClientId(clientId)
+    public RiskResponse getRiskByClient(String clientId) {
+        Long id = Long.parseLong(clientId);
+        return clientRiskRepository.findByClientId(id)
                 .map(RiskResponse::from)
                 .orElseGet(() -> {
                     log.info("Sin perfil de riesgo para clientId={}, calculando...", clientId);
@@ -64,11 +65,12 @@ public class RiskServiceImpl implements RiskService {
     @Override
     @Transactional
     @CacheEvict(value = "clientRisk", key = "#clientId")
-    public RiskResponse recalculate(Long clientId) {
+    public RiskResponse recalculate(String clientId) {
+        Long id = Long.parseLong(clientId);
         log.info("Iniciando doble análisis de riesgo para clientId={}", clientId);
 
         // PASO 1 — Construir historial combinando debt-service + payment-service
-        List<PaymentHistoryDTO> history = buildPaymentHistory(clientId.toString());
+        List<PaymentHistoryDTO> history = buildPaymentHistory(clientId);
         log.info("Historial construido: {} registros para clientId={}", history.size(), clientId);
 
         // PASO 2 — Análisis con reglas de negocio
@@ -78,7 +80,7 @@ public class RiskServiceImpl implements RiskService {
 
         // PASO 3 — Análisis con Groq AI
         GroqRiskResponse aiResult = groqAiAnalyzer.analyze(
-                clientId,
+                id,
                 rulesResult.totalDaysLate(),
                 rulesResult.latePaymentCount(),
                 rulesResult.paymentCount(),
@@ -90,8 +92,8 @@ public class RiskServiceImpl implements RiskService {
                 clientId, finalResult.riskLevel(), finalResult.riskScore(), aiResult != null);
 
         // PASO 5 — Persistir
-        ClientRisk entity = clientRiskRepository.findByClientId(clientId)
-                .orElse(new ClientRisk(clientId));
+        ClientRisk entity = clientRiskRepository.findByClientId(id)
+                .orElse(new ClientRisk(id));
         applyResult(entity, finalResult);
         clientRiskRepository.save(entity);
 
@@ -103,7 +105,7 @@ public class RiskServiceImpl implements RiskService {
     public void recalculateAll() {
         log.info("Recálculo masivo de riesgo iniciado...");
         clientRiskRepository.findAll()
-                .forEach(cr -> recalculate(cr.getClientId()));
+                .forEach(cr -> recalculate(cr.getClientId().toString()));
         log.info("Recálculo masivo completado.");
     }
 
@@ -122,13 +124,13 @@ public class RiskServiceImpl implements RiskService {
             List<PaymentDTO> payments = paymentClient.getPaymentsByDebt(debt.id()).data();
             for (PaymentDTO payment : payments) {
                 history.add(new PaymentHistoryDTO(
-                        payment.id(),
-                        Long.parseLong(debt.id()), // String → Long
-                        Long.parseLong(debtorId), // String → Long
+                        String.valueOf(payment.id()),
+                        debt.id(),
+                        debtorId,
                         payment.amount(),
                         payment.paymentDate(),
                         debt.dueDate(),
-                        payment.note() // note del PaymentDTO
+                        payment.note()
                 ));
             }
         }
@@ -138,7 +140,7 @@ public class RiskServiceImpl implements RiskService {
 
     // ── Reglas de negocio ────────────────────────────────────
 
-    private RiskCalculationResult applyBusinessRules(Long clientId,
+    private RiskCalculationResult applyBusinessRules(String clientId,
             List<PaymentHistoryDTO> payments) {
         int totalDaysLate = 0;
         int lateCount = 0;

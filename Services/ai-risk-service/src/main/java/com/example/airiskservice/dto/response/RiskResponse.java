@@ -9,7 +9,7 @@ import java.util.List;
  * DTO de salida con resultado combinado: reglas + análisis IA.
  */
 public record RiskResponse(
-        Long clientId,
+        String clientId,
         // ── resultado de reglas ──
         RiskLevel riskLevel,
         Double riskScore,

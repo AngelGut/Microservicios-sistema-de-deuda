@@ -27,7 +27,7 @@ public class RiskController {
     @GetMapping("/{clientId}")
     @Operation(summary = "Consultar riesgo de un cliente")
     public ResponseEntity<ApiResponse<RiskResponse>> getRiskByClient(
-            @Parameter(description = "ID del cliente") @PathVariable Long clientId) {
+            @Parameter(description = "ID del cliente") @PathVariable String clientId) {
         return ResponseEntity.ok(ApiResponse.ok(
                 riskService.getRiskByClient(clientId), TraceIdUtil.getTraceId()));
     }
@@ -42,7 +42,7 @@ public class RiskController {
     @PostMapping("/recalculate/{clientId}")
     @Operation(summary = "Recalcular riesgo de un cliente")
     public ResponseEntity<ApiResponse<RiskResponse>> recalculate(
-            @Parameter(description = "ID del cliente") @PathVariable Long clientId) {
+            @Parameter(description = "ID del cliente") @PathVariable String clientId) {
         return ResponseEntity.ok(ApiResponse.ok(
                 riskService.recalculate(clientId), TraceIdUtil.getTraceId()));
     }

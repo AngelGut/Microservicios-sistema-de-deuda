@@ -4,9 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record PaymentHistoryDTO(
-        Long id,
-        Long debtId,
-        Long clientId,
+        String id,
+        String debtId,
+        String clientId,
         BigDecimal amount,
         LocalDate paymentDate,
         LocalDate dueDate,
