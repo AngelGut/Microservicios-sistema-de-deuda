@@ -8,6 +8,7 @@ import com.example.paymentservice.model.Payment;
 import com.example.paymentservice.repository.PaymentRepository;
 import com.example.paymentservice.service.DebtClient;
 import com.example.paymentservice.service.PaymentService;
+import com.example.paymentservice.service.impl.NotificationClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,15 @@ import java.util.Map;
 /**
  * Implementación del servicio de pagos.
  *
- * <p>Principios SOLID aplicados:
+ * <p>
+ * Principios SOLID aplicados:
  * <ul>
- *   <li>SRP – solo contiene lógica de negocio de pagos.</li>
- *   <li>OCP – nuevas validaciones se agregan sin modificar el flujo existente.</li>
- *   <li>LSP – cumple completamente el contrato de {@link PaymentService}.</li>
- *   <li>DIP – depende de abstracciones: {@link PaymentRepository}, {@link DebtClient}.</li>
+ * <li>SRP – solo contiene lógica de negocio de pagos.</li>
+ * <li>OCP – nuevas validaciones se agregan sin modificar el flujo
+ * existente.</li>
+ * <li>LSP – cumple completamente el contrato de {@link PaymentService}.</li>
+ * <li>DIP – depende de abstracciones: {@link PaymentRepository},
+ * {@link DebtClient}.</li>
  * </ul>
  */
 @Service
@@ -36,10 +40,13 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final DebtClient debtClient;
+    private final NotificationClient notificationClient;
 
-    public PaymentServiceImpl(PaymentRepository paymentRepository, DebtClient debtClient) {
+    public PaymentServiceImpl(PaymentRepository paymentRepository, DebtClient debtClient,
+            NotificationClient notificationClient) {
         this.paymentRepository = paymentRepository;
         this.debtClient = debtClient;
+        this.notificationClient = notificationClient;
     }
 
     // ── Registrar un pago ────────────────────────────────────
@@ -54,16 +61,14 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> ApiException.notFound(
                         "RES_404",
                         "La deuda con ID " + request.debtId() + " no existe",
-                        Map.of("debtId", request.debtId())
-                ));
+                        Map.of("debtId", request.debtId())));
 
         // 2. Verificar que la deuda no esté completamente pagada
         if ("PAGADA".equalsIgnoreCase(debt.status())) {
             throw ApiException.badRequest(
                     "VAL_400",
                     "La deuda ya fue completamente pagada",
-                    Map.of("debtId", request.debtId(), "status", debt.status())
-            );
+                    Map.of("debtId", request.debtId(), "status", debt.status()));
         }
 
         // 3. Verificar que el monto no supera el saldo pendiente
@@ -75,9 +80,7 @@ public class PaymentServiceImpl implements PaymentService {
                     Map.of(
                             "debtId", request.debtId(),
                             "amountRequested", request.amount(),
-                            "remainingBalance", remaining
-                    )
-            );
+                            "remainingBalance", remaining));
         }
 
         // 4. Persistir el pago
@@ -85,12 +88,18 @@ public class PaymentServiceImpl implements PaymentService {
                 request.debtId(),
                 request.amount(),
                 request.paymentDate(),
-                request.note()
-        );
+                request.note());
         Payment saved = paymentRepository.save(payment);
 
         // 5. Notificar a debt-service para que actualice saldo y estado
         debtClient.notifyPayment(request.debtId(), request.amount());
+
+        // 6. Disparar notificación de email (fire-and-forget)
+        // Obtener nombre y email del deudor desde debtor-service
+        String debtorName = notificationClient.getDebtorName(debt.debtorId());
+        String debtorEmail = notificationClient.getDebtorEmail(debt.debtorId());
+        notificationClient.sendPaymentConfirmation(
+                PaymentResponse.from(saved), debt, debtorName, debtorEmail);
 
         log.info("Pago registrado exitosamente: id={}", saved.getId());
         return PaymentResponse.from(saved);
@@ -124,8 +133,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> ApiException.notFound(
                         "RES_404",
                         "Pago con ID " + id + " no encontrado",
-                        Map.of("paymentId", id)
-                ));
+                        Map.of("paymentId", id)));
         return PaymentResponse.from(payment);
     }
 }
