@@ -397,7 +397,11 @@
             <polyline points="12 8 12 12 14 14" /></svg
           >Microservicios
         </a>
-        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
+        <a
+          href="https://gateway-production-a233.up.railway.app/swagger-ui.html"
+          target="_blank"
+          class="nav-item"
+        >
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -412,7 +416,11 @@
       <div class="sidebar-user">
         <div class="user-avatar">U</div>
         <div class="user-info">
-          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
+          <span
+            class="user-name"
+            th:text="${session.userDisplayName ?: 'Usuario'}"
+            >Usuario</span
+          >
           <span class="user-status"
             ><span class="status-dot"></span>JWT activo</span
           >
@@ -665,14 +673,18 @@
             </div>
 
             <!-- Panel deudas del día seleccionado (dinámico) -->
-            <div id="debtDayPanel" style="display:none;">
-              <div class="panel-card-header" id="debtDayTitle" style="border-top:1px solid var(--border);">
+            <div id="debtDayPanel" style="display: none">
+              <div
+                class="panel-card-header"
+                id="debtDayTitle"
+                style="border-top: 1px solid var(--border)"
+              >
                 Selecciona un día
               </div>
               <div id="debtDayList"></div>
             </div>
 
-          <!-- Empty state -->
+            <!-- Empty state -->
             <div th:if="${#lists.isEmpty(reminders)}" class="empty-reminders">
               <svg
                 viewBox="0 0 24 24"
@@ -910,8 +922,8 @@
 
     <!-- Datos para el calendario (inyectados desde Thymeleaf) -->
     <script th:inline="javascript">
-      const REMINDERS_DATA = /*[[${remindersJson}]]*/ [];
-      const DEBTS_DATA = /*[[${debtsJson}]]*/ [];
+      const REMINDERS_DATA = JSON.parse(/*[[${remindersJson}]]*/ "[]");
+      const DEBTS_DATA = JSON.parse(/*[[${debtsJson}]]*/ "[]");
     </script>
 
     <script>
@@ -1016,7 +1028,7 @@
               dot.className = "cal-dot" + (isPast ? " urgent" : "");
               div.appendChild(dot);
             }
-            const names = debts.map(d => d.description).join(", ");
+            const names = debts.map((d) => d.description).join(", ");
             div.title = (isPast ? "⚠️ VENCIDA: " : "📅 Vence: ") + names;
             div.onclick = () => mostrarDeudas(dateStr, debts, isPast);
           }
@@ -1070,36 +1082,73 @@
 
       // Mostrar deudas del día seleccionado en el panel derecho
       function mostrarDeudas(dateStr, debts, isPast) {
-        document.querySelectorAll(".cal-day.selected").forEach(d => d.classList.remove("selected"));
+        document
+          .querySelectorAll(".cal-day.selected")
+          .forEach((d) => d.classList.remove("selected"));
         event.currentTarget.classList.add("selected");
 
         const panel = document.getElementById("debtDayPanel");
         const title = document.getElementById("debtDayTitle");
-        const list  = document.getElementById("debtDayList");
+        const list = document.getElementById("debtDayList");
 
         const [y, m, d] = dateStr.split("-");
-        const MESES_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-        title.textContent = (isPast ? "⚠️ Vencidas - " : "📅 Vencen el ") + d + " " + MESES_SHORT[parseInt(m)-1] + " " + y;
+        const MESES_SHORT = [
+          "Ene",
+          "Feb",
+          "Mar",
+          "Abr",
+          "May",
+          "Jun",
+          "Jul",
+          "Ago",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dic",
+        ];
+        title.textContent =
+          (isPast ? "⚠️ Vencidas - " : "📅 Vencen el ") +
+          d +
+          " " +
+          MESES_SHORT[parseInt(m) - 1] +
+          " " +
+          y;
 
         list.innerHTML = "";
-        debts.forEach(debt => {
+        debts.forEach((debt) => {
           const item = document.createElement("div");
           item.className = "reminder-item";
           const bg = isPast
             ? "linear-gradient(135deg,#7f1d1d,#b91c1c)"
             : "linear-gradient(135deg,#4C5E1A,#6a8422)";
           const badgeClass = isPast ? "badge-urgent" : "badge-upcoming";
-          const badgeText  = isPast ? "VENCIDA" : "PROXIMA";
+          const badgeText = isPast ? "VENCIDA" : "PROXIMA";
           item.innerHTML =
-            '<div class="reminder-date-box" style="background:' + bg + '">' +
-              '<div class="reminder-date-day">' + d + '</div>' +
-              '<div class="reminder-date-mon">' + MESES_SHORT[parseInt(m) - 1] + '</div>' +
-            '</div>' +
+            '<div class="reminder-date-box" style="background:' +
+            bg +
+            '">' +
+            '<div class="reminder-date-day">' +
+            d +
+            "</div>" +
+            '<div class="reminder-date-mon">' +
+            MESES_SHORT[parseInt(m) - 1] +
+            "</div>" +
+            "</div>" +
             '<div class="reminder-body">' +
-              '<div class="reminder-name">' + (debt.description || "Sin descripcion") + '</div>' +
-              '<div class="reminder-desc">Balance: ' + (debt.currentBalance || "0") + ' ' + (debt.currency || "RD$") + '</div>' +
-            '</div>' +
-            '<span class="reminder-badge ' + badgeClass + '">' + badgeText + '</span>';
+            '<div class="reminder-name">' +
+            (debt.description || "Sin descripcion") +
+            "</div>" +
+            '<div class="reminder-desc">Balance: ' +
+            (debt.currentBalance || "0") +
+            " " +
+            (debt.currency || "RD$") +
+            "</div>" +
+            "</div>" +
+            '<span class="reminder-badge ' +
+            badgeClass +
+            '">' +
+            badgeText +
+            "</span>";
           list.appendChild(item);
         });
 
