@@ -8,7 +8,6 @@ import java.util.List;
 
 @Component
 public class PaymentClientFallback implements PaymentClient {
-
     private static final Logger log = LoggerFactory.getLogger(PaymentClientFallback.class);
 
     @Override
