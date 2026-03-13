@@ -3,11 +3,6 @@ package com.example.airiskservice.model;
 import jakarta.persistence.*;
 import java.time.Instant;
 
-/**
- * Entidad JPA que representa el perfil de riesgo crediticio de un cliente.
- *
- * Principio SRP: solo encapsula el estado persistible del riesgo.
- */
 @Entity
 @Table(name = "client_risk")
 public class ClientRisk {
@@ -24,7 +19,6 @@ public class ClientRisk {
     @Column(name = "risk_level", nullable = false)
     private RiskLevel riskLevel;
 
-    /** Puntuación de riesgo entre 0.0 (sin riesgo) y 100.0 (máximo riesgo). */
     @Column(name = "risk_score", nullable = false)
     private Double riskScore;
 
@@ -38,27 +32,28 @@ public class ClientRisk {
     private Integer paymentCount;
 
     @Column(name = "last_calculated_at", nullable = false)
-    private Instant lastCalculatedAt;
+    private String lastCalculatedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private String createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    private String updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        Instant now = Instant.now();
+        String now = Instant.now().toString();
         this.createdAt = now;
         this.updatedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = Instant.now();
+        this.updatedAt = Instant.now().toString();
     }
 
-    protected ClientRisk() {}
+    protected ClientRisk() {
+    }
 
     public ClientRisk(String clientId) {
         this.clientId = clientId;
@@ -67,26 +62,72 @@ public class ClientRisk {
         this.totalDaysLate = 0;
         this.latePaymentCount = 0;
         this.paymentCount = 0;
-        this.lastCalculatedAt = Instant.now();
+        this.lastCalculatedAt = Instant.now().toString();
     }
 
     // ── Getters ──────────────────────────────────────────────
-    public Long getId()                  { return id; }
-    public String getClientId()          { return clientId; }
-    public RiskLevel getRiskLevel()      { return riskLevel; }
-    public Double getRiskScore()         { return riskScore; }
-    public Integer getTotalDaysLate()    { return totalDaysLate; }
-    public Integer getLatePaymentCount() { return latePaymentCount; }
-    public Integer getPaymentCount()     { return paymentCount; }
-    public Instant getLastCalculatedAt() { return lastCalculatedAt; }
-    public Instant getCreatedAt()        { return createdAt; }
-    public Instant getUpdatedAt()        { return updatedAt; }
+    public Long getId() {
+        return id;
+    }
 
-    // ── Setters (solo los campos que cambian en recálculo) ───
-    public void setRiskLevel(RiskLevel riskLevel)          { this.riskLevel = riskLevel; }
-    public void setRiskScore(Double riskScore)             { this.riskScore = riskScore; }
-    public void setTotalDaysLate(Integer totalDaysLate)    { this.totalDaysLate = totalDaysLate; }
-    public void setLatePaymentCount(Integer count)         { this.latePaymentCount = count; }
-    public void setPaymentCount(Integer paymentCount)      { this.paymentCount = paymentCount; }
-    public void setLastCalculatedAt(Instant lastCalc)      { this.lastCalculatedAt = lastCalc; }
+    public String getClientId() {
+        return clientId;
+    }
+
+    public RiskLevel getRiskLevel() {
+        return riskLevel;
+    }
+
+    public Double getRiskScore() {
+        return riskScore;
+    }
+
+    public Integer getTotalDaysLate() {
+        return totalDaysLate;
+    }
+
+    public Integer getLatePaymentCount() {
+        return latePaymentCount;
+    }
+
+    public Integer getPaymentCount() {
+        return paymentCount;
+    }
+
+    public Instant getLastCalculatedAt() {
+        return Instant.parse(lastCalculatedAt);
+    }
+
+    public Instant getCreatedAt() {
+        return Instant.parse(createdAt);
+    }
+
+    public Instant getUpdatedAt() {
+        return Instant.parse(updatedAt);
+    }
+
+    // ── Setters ──────────────────────────────────────────────
+    public void setRiskLevel(RiskLevel riskLevel) {
+        this.riskLevel = riskLevel;
+    }
+
+    public void setRiskScore(Double riskScore) {
+        this.riskScore = riskScore;
+    }
+
+    public void setTotalDaysLate(Integer totalDaysLate) {
+        this.totalDaysLate = totalDaysLate;
+    }
+
+    public void setLatePaymentCount(Integer count) {
+        this.latePaymentCount = count;
+    }
+
+    public void setPaymentCount(Integer paymentCount) {
+        this.paymentCount = paymentCount;
+    }
+
+    public void setLastCalculatedAt(Instant lastCalc) {
+        this.lastCalculatedAt = lastCalc.toString();
+    }
 }
