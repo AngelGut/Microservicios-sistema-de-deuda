@@ -12,9 +12,8 @@ import java.time.LocalDate;
  */
 public record CreatePaymentRequest(
 
-        @NotNull(message = "El ID de la deuda es obligatorio")
-        @Positive(message = "El ID de la deuda debe ser mayor que cero")
-        Long debtId,
+        @NotBlank(message = "El ID de la deuda es obligatorio")
+        String debtId,
 
         @NotNull(message = "El monto es obligatorio")
         @DecimalMin(value = "0.01", message = "El monto debe ser mayor que cero")

@@ -33,10 +33,10 @@ public interface PaymentService {
     /**
      * Devuelve todos los pagos asociados a una deuda específica.
      *
-     * @param debtId ID de la deuda
+     * @param debtId ID de la deuda (UUID String)
      * @return lista de pagos de esa deuda
      */
-    List<PaymentResponse> getPaymentsByDebt(Long debtId);
+    List<PaymentResponse> getPaymentsByDebt(String debtId);
 
     /**
      * Devuelve un pago por su ID.

@@ -3,8 +3,8 @@ package com.example.paymentservice.dto.response;
 import com.example.paymentservice.model.Payment;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * DTO de salida que representa un pago para el cliente.
@@ -14,11 +14,11 @@ import java.time.LocalDate;
  */
 public record PaymentResponse(
         Long id,
-        Long debtId,
+        String debtId,
         BigDecimal amount,
         LocalDate paymentDate,
         String note,
-        Instant createdAt
+        LocalDateTime createdAt
 ) {
     /**
      * Factory method: convierte una entidad {@link Payment} en su DTO de respuesta.

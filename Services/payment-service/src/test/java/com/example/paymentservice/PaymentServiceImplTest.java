@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,13 +42,17 @@ class PaymentServiceImplTest {
     @InjectMocks
     private PaymentServiceImpl paymentService;
 
+    private static final String DEBT_ID = "550e8400-e29b-41d4-a716-446655440000";
+    private static final String DEBTOR_ID = "debtor-uuid-001";
+
     private DebtResponse activeDebt;
     private CreatePaymentRequest validRequest;
 
     @BeforeEach
     void setUp() {
-        activeDebt = new DebtResponse(1L, new BigDecimal("1000.00"), new BigDecimal("500.00"), "PENDING");
-        validRequest = new CreatePaymentRequest(1L, new BigDecimal("200.00"), LocalDate.now(), "Pago parcial");
+        activeDebt = new DebtResponse(DEBT_ID, DEBTOR_ID, "Deuda de prueba",
+                new BigDecimal("1000.00"), new BigDecimal("500.00"), "USD", "PENDIENTE");
+        validRequest = new CreatePaymentRequest(DEBT_ID, new BigDecimal("200.00"), LocalDate.now(), "Pago parcial");
     }
 
     // ── createPayment: casos exitosos ────────────────────────
@@ -57,27 +60,27 @@ class PaymentServiceImplTest {
     @Test
     @DisplayName("Debe registrar un pago válido exitosamente")
     void createPayment_success() {
-        when(debtClient.findById(1L)).thenReturn(Optional.of(activeDebt));
-        Payment savedPayment = new Payment(1L, new BigDecimal("200.00"), LocalDate.now(), "Pago parcial");
+        when(debtClient.findById(DEBT_ID)).thenReturn(Optional.of(activeDebt));
+        Payment savedPayment = new Payment(DEBT_ID, new BigDecimal("200.00"), LocalDate.now(), "Pago parcial");
         when(paymentRepository.save(any())).thenReturn(savedPayment);
 
         PaymentResponse result = paymentService.createPayment(validRequest);
 
         assertThat(result).isNotNull();
-        assertThat(result.debtId()).isEqualTo(1L);
+        assertThat(result.debtId()).isEqualTo(DEBT_ID);
         assertThat(result.amount()).isEqualByComparingTo("200.00");
 
-        verify(debtClient).notifyPayment(eq(1L), eq(new BigDecimal("200.00")));
+        verify(debtClient).notifyPayment(eq(DEBT_ID), eq(new BigDecimal("200.00")));
     }
 
     @Test
     @DisplayName("Debe pasar el monto exacto al saldo pendiente")
     void createPayment_exactRemainingBalance_success() {
         CreatePaymentRequest exactRequest =
-                new CreatePaymentRequest(1L, new BigDecimal("500.00"), LocalDate.now(), null);
+                new CreatePaymentRequest(DEBT_ID, new BigDecimal("500.00"), LocalDate.now(), null);
 
-        when(debtClient.findById(1L)).thenReturn(Optional.of(activeDebt));
-        Payment saved = new Payment(1L, new BigDecimal("500.00"), LocalDate.now(), null);
+        when(debtClient.findById(DEBT_ID)).thenReturn(Optional.of(activeDebt));
+        Payment saved = new Payment(DEBT_ID, new BigDecimal("500.00"), LocalDate.now(), null);
         when(paymentRepository.save(any())).thenReturn(saved);
 
         assertThatCode(() -> paymentService.createPayment(exactRequest))
@@ -89,7 +92,7 @@ class PaymentServiceImplTest {
     @Test
     @DisplayName("Debe lanzar excepción cuando la deuda no existe")
     void createPayment_debtNotFound_throwsException() {
-        when(debtClient.findById(1L)).thenReturn(Optional.empty());
+        when(debtClient.findById(DEBT_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> paymentService.createPayment(validRequest))
                 .isInstanceOf(ApiException.class)
@@ -101,8 +104,9 @@ class PaymentServiceImplTest {
     @Test
     @DisplayName("Debe lanzar excepción cuando la deuda ya está pagada")
     void createPayment_debtAlreadyPaid_throwsException() {
-        DebtResponse paidDebt = new DebtResponse(1L, new BigDecimal("1000.00"), BigDecimal.ZERO, "PAID");
-        when(debtClient.findById(1L)).thenReturn(Optional.of(paidDebt));
+        DebtResponse paidDebt = new DebtResponse(DEBT_ID, DEBTOR_ID, "Deuda pagada",
+                new BigDecimal("1000.00"), BigDecimal.ZERO, "USD", "PAGADA");
+        when(debtClient.findById(DEBT_ID)).thenReturn(Optional.of(paidDebt));
 
         assertThatThrownBy(() -> paymentService.createPayment(validRequest))
                 .isInstanceOf(ApiException.class)
@@ -115,9 +119,9 @@ class PaymentServiceImplTest {
     @DisplayName("Debe lanzar excepción cuando el monto supera el saldo pendiente")
     void createPayment_amountExceedsBalance_throwsException() {
         CreatePaymentRequest overRequest =
-                new CreatePaymentRequest(1L, new BigDecimal("600.00"), LocalDate.now(), null);
+                new CreatePaymentRequest(DEBT_ID, new BigDecimal("600.00"), LocalDate.now(), null);
 
-        when(debtClient.findById(1L)).thenReturn(Optional.of(activeDebt));
+        when(debtClient.findById(DEBT_ID)).thenReturn(Optional.of(activeDebt));
 
         assertThatThrownBy(() -> paymentService.createPayment(overRequest))
                 .isInstanceOf(ApiException.class)

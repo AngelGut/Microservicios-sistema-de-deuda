@@ -240,6 +240,38 @@
           display: none;
         }
       }
+      .risk-pill {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        display: inline-block;
+      }
+      .risk-loading {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+      }
+      .risk-fiable {
+        background: rgba(74, 222, 128, 0.12);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+      }
+      .risk-revision {
+        background: rgba(251, 191, 36, 0.12);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+      }
+      .risk-bloqueado {
+        background: rgba(248, 113, 113, 0.12);
+        color: #f87171;
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+      .risk-no-disponible {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+      }
     </style>
   </head>
   <body>
@@ -331,7 +363,11 @@
             <polyline points="12 8 12 12 14 14" /></svg
           >Microservicios
         </a>
-        <a href="#" class="nav-item">
+        <a
+          href="https://gateway-production-a233.up.railway.app/swagger-ui.html"
+          target="_blank"
+          class="nav-item"
+        >
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -346,7 +382,11 @@
       <div class="sidebar-user">
         <div class="user-avatar">U</div>
         <div class="user-info">
-          <span class="user-name">Usuario</span>
+          <span
+            class="user-name"
+            th:text="${session.userDisplayName ?: 'Usuario'}"
+            >Usuario</span
+          >
           <span class="user-status"
             ><span class="status-dot"></span>JWT activo</span
           >
@@ -499,6 +539,7 @@
               <th class="hide-mobile">Documento</th>
               <th class="hide-mobile">Email</th>
               <th class="hide-mobile">Teléfono</th>
+              <th class="hide-mobile">Riesgo IA</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -523,7 +564,7 @@
                     </div>
                     <div
                       class="debtor-doc-lg"
-                      th:text="${debtor.documentNumber}"
+                      th:text="${(debtor.documentType ?: '') + (debtor.documentType != null ? ': ' : '') + (debtor.documentNumber ?: '-')}"
                     >
                       ---
                     </div>
@@ -540,7 +581,7 @@
               <td
                 class="hide-mobile"
                 style="color: var(--text-muted)"
-                th:text="${debtor.documentType}"
+                th:text="${(debtor.documentType ?: '-') + (debtor.documentNumber != null ? ': ' + debtor.documentNumber : '')}"
               >
                 ---
               </td>
@@ -557,6 +598,13 @@
                 th:text="${debtor.phone ?: '-'}"
               >
                 ---
+              </td>
+              <td class="hide-mobile">
+                <span
+                  class="risk-pill risk-loading"
+                  th:data-debtor-id="${debtor.id}"
+                  >…</span
+                >
               </td>
               <td>
                 <div class="action-btns">
@@ -1046,6 +1094,39 @@
         document.getElementById("formNuevoDeudor").submit();
         return false;
       }
+      // ── Carga asíncrona de perfiles de riesgo IA ──
+      const RISK_CLASS = {
+        FIABLE: "risk-fiable",
+        REVISION: "risk-revision",
+        BLOQUEADO: "risk-bloqueado",
+        NO_DISPONIBLE: "risk-no-disponible",
+      };
+      const RISK_LABEL = {
+        FIABLE: "✓ Fiable",
+        REVISION: "⚠ Revisión",
+        BLOQUEADO: "✕ Bloqueado",
+        NO_DISPONIBLE: "— N/D",
+      };
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[data-debtor-id]").forEach(function (pill) {
+          const id = pill.getAttribute("data-debtor-id");
+          fetch("/debtors/api/risk/" + id)
+            .then(function (r) {
+              return r.ok ? r.json() : null;
+            })
+            .then(function (data) {
+              const status =
+                data && data.status ? data.status : "NO_DISPONIBLE";
+              pill.className =
+                "risk-pill " + (RISK_CLASS[status] || "risk-no-disponible");
+              pill.textContent = RISK_LABEL[status] || status;
+            })
+            .catch(function () {
+              pill.className = "risk-pill risk-no-disponible";
+              pill.textContent = "— N/D";
+            });
+        });
+      });
     </script>
   </body>
 </html>
