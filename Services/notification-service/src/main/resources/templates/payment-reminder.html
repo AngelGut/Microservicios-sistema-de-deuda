@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Recordatorio de Pago</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #333333;
+        }
+        .wrapper {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #f59e0b;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            font-size: 22px;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .header p {
+            color: #fef3c7;
+            margin: 6px 0 0;
+            font-size: 13px;
+        }
+        .content {
+            padding: 36px 40px;
+        }
+        .greeting {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+        .intro {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #555555;
+            margin-bottom: 24px;
+        }
+        .warning-badge {
+            display: inline-block;
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fcd34d;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+        .summary-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+        }
+        .summary-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-box td {
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        .summary-box td.label {
+            color: #666666;
+            width: 55%;
+        }
+        .summary-box td.value {
+            font-weight: bold;
+            color: #1a1a1a;
+            text-align: right;
+        }
+        .due-date .value {
+            color: #dc2626;
+            font-size: 16px;
+        }
+        .amount .value {
+            color: #b45309;
+            font-size: 16px;
+        }
+        .divider {
+            border: none;
+            border-top: 1px solid #fde68a;
+            margin: 4px 0;
+        }
+        .action-block {
+            background-color: #fff7ed;
+            border-radius: 6px;
+            padding: 18px 24px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .action-block strong {
+            color: #b45309;
+        }
+        .footer-note {
+            font-size: 13px;
+            color: #888888;
+            line-height: 1.6;
+            border-top: 1px solid #eeeeee;
+            padding-top: 20px;
+            margin-top: 12px;
+        }
+        .footer {
+            background-color: #f4f6f9;
+            text-align: center;
+            padding: 20px 40px;
+            font-size: 12px;
+            color: #aaaaaa;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>⏰ Recordatorio de Pago</h1>
+        <p>Tu deuda vence en 3 días</p>
+    </div>
+
+    <!-- Body -->
+    <div class="content">
+
+        <p class="greeting">Hola, <span th:text="${debtorName}">Juan Pérez</span></p>
+
+        <p class="intro">
+            Te recordamos que tienes una deuda próxima a vencer.
+            Para evitar cargos adicionales o penalizaciones, te recomendamos
+            realizar tu pago antes de la fecha de vencimiento.
+        </p>
+
+        <div class="warning-badge">⚠ Vencimiento en 3 días</div>
+
+        <!-- Resumen de la deuda -->
+        <div class="summary-box">
+            <table>
+                <tr>
+                    <td class="label">Descripción</td>
+                    <td class="value" th:text="${description}">Deuda comercial</td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr class="divider"/></td>
+                </tr>
+                <tr class="amount">
+                    <td class="label">Monto a pagar</td>
+                    <td class="value">
+                        <span th:text="${currency}">USD</span>
+                        <span th:text="${#numbers.formatDecimal(debtAmount, 1, 2)}">500.00</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr class="divider"/></td>
+                </tr>
+                <tr class="due-date">
+                    <td class="label">Fecha de vencimiento</td>
+                    <td class="value" th:text="${dueDate}">18/01/2025</td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr class="divider"/></td>
+                </tr>
+                <tr>
+                    <td class="label">Referencia de deuda</td>
+                    <td class="value" th:text="${debtId}">uuid-deuda-001</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Llamado a la acción -->
+        <div class="action-block">
+            <strong>¿Cómo realizar tu pago?</strong><br/>
+            Ingresa al sistema con tu usuario y realiza el pago desde
+            la sección <em>Mis Deudas</em>. Si ya realizaste el pago,
+            por favor ignora este mensaje.
+        </div>
+
+        <p class="footer-note">
+            Si tienes preguntas sobre esta deuda, comunícate con nosotros
+            indicando el número de referencia. <br/>
+            Este es un correo automático generado por el sistema.
+            Por favor no respondas a este mensaje directamente.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        &copy; 2025 Sistema de Gestión de Deudas. Todos los derechos reservados.
+    </div>
+
+</div>
+</body>
+</html>

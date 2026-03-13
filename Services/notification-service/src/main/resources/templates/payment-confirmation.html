@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Confirmación de Pago</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #333333;
+        }
+        .wrapper {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #1a73e8;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            font-size: 22px;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .header p {
+            color: #d0e4ff;
+            margin: 6px 0 0;
+            font-size: 13px;
+        }
+        .content {
+            padding: 36px 40px;
+        }
+        .greeting {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+        .intro {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 28px;
+            color: #555555;
+        }
+        .summary-box {
+            background-color: #f0f7ff;
+            border-left: 4px solid #1a73e8;
+            border-radius: 4px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+        }
+        .summary-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-box td {
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        .summary-box td.label {
+            color: #666666;
+            width: 55%;
+        }
+        .summary-box td.value {
+            font-weight: bold;
+            color: #1a1a1a;
+            text-align: right;
+        }
+        .amount-paid .value {
+            color: #1a73e8;
+            font-size: 18px;
+        }
+        .balance .value {
+            color: #333333;
+        }
+        .divider {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 4px 0;
+        }
+        .success-badge {
+            display: inline-block;
+            background-color: #e6f4ea;
+            color: #1e7e34;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+        .footer-note {
+            font-size: 13px;
+            color: #888888;
+            line-height: 1.6;
+            border-top: 1px solid #eeeeee;
+            padding-top: 20px;
+            margin-top: 12px;
+        }
+        .footer {
+            background-color: #f4f6f9;
+            text-align: center;
+            padding: 20px 40px;
+            font-size: 12px;
+            color: #aaaaaa;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>✅ Confirmación de Pago</h1>
+        <p>Sistema de Gestión de Deudas</p>
+    </div>
+
+    <!-- Body -->
+    <div class="content">
+
+        <p class="greeting">Hola, <span th:text="${debtorName}">Juan Pérez</span></p>
+
+        <p class="intro">
+            Hemos recibido correctamente tu pago. A continuación encontrarás
+            el resumen de la transacción:
+        </p>
+
+        <div class="success-badge">✔ Pago registrado exitosamente</div>
+
+        <!-- Resumen del pago -->
+        <div class="summary-box">
+            <table>
+                <tr class="amount-paid">
+                    <td class="label">Monto pagado</td>
+                    <td class="value">
+                        <span th:text="${currency}">USD</span>
+                        <span th:text="${#numbers.formatDecimal(amountPaid, 1, 2)}">150.00</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr class="divider"/></td>
+                </tr>
+                <tr class="balance">
+                    <td class="label">Balance restante de la deuda</td>
+                    <td class="value">
+                        <span th:text="${currency}">USD</span>
+                        <span th:text="${#numbers.formatDecimal(remainingBalance, 1, 2)}">350.00</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr class="divider"/></td>
+                </tr>
+                <tr>
+                    <td class="label">Fecha del pago</td>
+                    <td class="value" th:text="${paymentDate}">15/01/2025</td>
+                </tr>
+                <tr>
+                    <td class="label">Referencia de deuda</td>
+                    <td class="value" th:text="${debtId}">uuid-deuda-001</td>
+                </tr>
+            </table>
+        </div>
+
+        <p class="intro">
+            Gracias por mantener tus pagos al día. Si tienes alguna duda sobre
+            este pago, comunícate con nosotros indicando tu número de referencia.
+        </p>
+
+        <p class="footer-note">
+            Este es un correo automático generado por el sistema.
+            Por favor no respondas a este mensaje directamente.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        &copy; 2025 Sistema de Gestión de Deudas. Todos los derechos reservados.
+    </div>
+
+</div>
+</body>
+</html>
