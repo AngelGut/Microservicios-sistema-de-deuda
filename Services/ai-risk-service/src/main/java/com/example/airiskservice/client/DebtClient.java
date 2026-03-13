@@ -1,5 +1,6 @@
 package com.example.airiskservice.client;
 
+import com.example.common.api.ApiResponse;
 import com.example.airiskservice.dto.response.DebtDTO;
 import com.example.airiskservice.client.fallback.DebtClientFallback;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,5 +12,5 @@ import java.util.List;
 public interface DebtClient {
 
     @GetMapping("/api/v1/debts")
-    List<DebtDTO> getDebtsByDebtor(@RequestParam("debtorId") String debtorId);
+    ApiResponse<List<DebtDTO>> getDebtsByDebtor(@RequestParam("debtorId") String debtorId);
 }

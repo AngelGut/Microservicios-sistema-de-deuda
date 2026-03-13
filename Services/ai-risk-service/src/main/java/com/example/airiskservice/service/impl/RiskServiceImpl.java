@@ -115,11 +115,11 @@ public class RiskServiceImpl implements RiskService {
      * El debtorId en este sistema es el mismo que clientId en formato String.
      */
     private List<PaymentHistoryDTO> buildPaymentHistory(String debtorId) {
-        List<DebtDTO> debts = debtClient.getDebtsByDebtor(debtorId);
+        List<DebtDTO> debts = debtClient.getDebtsByDebtor(debtorId).data();
         List<PaymentHistoryDTO> history = new ArrayList<>();
 
         for (DebtDTO debt : debts) {
-            List<PaymentDTO> payments = paymentClient.getPaymentsByDebt(debt.id());
+            List<PaymentDTO> payments = paymentClient.getPaymentsByDebt(debt.id()).data();
             for (PaymentDTO payment : payments) {
                 history.add(new PaymentHistoryDTO(
                         payment.id(),

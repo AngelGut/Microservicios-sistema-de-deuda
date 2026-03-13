@@ -51,7 +51,7 @@ public class DebtController {
         return "debts/list";
     }
 
-    // ── Detalle de una deuda (redirige a lista por ahora) ──
+    // ── Detalle de una deuda (muestra lista filtrada por deudor) ──
     @GetMapping("/{id}")
     public String detail(@PathVariable String id,
             HttpSession session,
@@ -60,10 +60,16 @@ public class DebtController {
         try {
             DebtResponse debt = debtService.getById(id, token);
             model.addAttribute("debt", debt);
+            // Cargar todas las deudas del mismo deudor
             try {
-                model.addAttribute("payments", paymentService.getByDebtId(id, token));
+                model.addAttribute("debts", debtService.getByDebtorId(debt.debtorId(), token));
             } catch (Exception e) {
-                model.addAttribute("payments", new ArrayList<>());
+                model.addAttribute("debts", List.of(debt));
+            }
+            try {
+                model.addAttribute("allDebtors", debtorService.getAll(token));
+            } catch (Exception e) {
+                model.addAttribute("allDebtors", new ArrayList<>());
             }
         } catch (Exception e) {
             return "redirect:/debts";
