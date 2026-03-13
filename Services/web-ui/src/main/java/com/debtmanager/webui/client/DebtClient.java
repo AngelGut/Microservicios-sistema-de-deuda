@@ -75,6 +75,59 @@ public class DebtClient {
         return new DebtSummaryResponse(0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO);
     }
 
+    // ── Dashboard KPIs por moneda ──────────────────────────────────────────────
+    public DebtSummaryResponse getSummaryByDOP(String token) {
+        try {
+            HttpEntity<?> entity = new HttpEntity<>(buildHeaders(token));
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    gatewayUrl + "/api/v1/debts/summary?currency=DOP",
+                    HttpMethod.GET,
+                    entity,
+                    Map.class);
+
+            if (response.getBody() != null) {
+                Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
+                if (data != null) {
+                    return new DebtSummaryResponse(
+                            toLong(data.get("totalActivas")),
+                            toLong(data.get("totalPagadas")),
+                            toBigDecimal(data.get("montoTotalActivo")),
+                            toBigDecimal(data.get("montoTotalCobrado")));
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[DebtClient] getSummaryByDOP error: {}", e.getMessage());
+        }
+        return new DebtSummaryResponse(0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
+    public DebtSummaryResponse getSummaryByUSD(String token) {
+        try {
+            HttpEntity<?> entity = new HttpEntity<>(buildHeaders(token));
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    gatewayUrl + "/api/v1/debts/summary?currency=USD",
+                    HttpMethod.GET,
+                    entity,
+                    Map.class);
+
+            if (response.getBody() != null) {
+                Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
+                if (data != null) {
+                    return new DebtSummaryResponse(
+                            toLong(data.get("totalActivas")),
+                            toLong(data.get("totalPagadas")),
+                            toBigDecimal(data.get("montoTotalActivo")),
+                            toBigDecimal(data.get("montoTotalCobrado")));
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[DebtClient] getSummaryByUSD error: {}", e.getMessage());
+        }
+        return new DebtSummaryResponse(0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
     // ── Lista global de todas las deudas ──────────────────────────────────────
     public List<DebtResponse> getAll(String token) {
         try {

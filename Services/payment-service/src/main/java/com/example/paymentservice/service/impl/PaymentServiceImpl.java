@@ -58,7 +58,7 @@ public class PaymentServiceImpl implements PaymentService {
                 ));
 
         // 2. Verificar que la deuda no esté completamente pagada
-        if ("PAID".equalsIgnoreCase(debt.status())) {
+        if ("PAGADA".equalsIgnoreCase(debt.status())) {
             throw ApiException.badRequest(
                     "VAL_400",
                     "La deuda ya fue completamente pagada",
@@ -67,7 +67,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         // 3. Verificar que el monto no supera el saldo pendiente
-        BigDecimal remaining = debt.remainingBalance();
+        BigDecimal remaining = debt.currentBalance();
         if (request.amount().compareTo(remaining) > 0) {
             throw ApiException.badRequest(
                     "VAL_400",
@@ -107,7 +107,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<PaymentResponse> getPaymentsByDebt(Long debtId) {
+    public List<PaymentResponse> getPaymentsByDebt(String debtId) {
         List<PaymentResponse> payments = paymentRepository
                 .findByDebtIdOrderByPaymentDateDesc(debtId)
                 .stream()

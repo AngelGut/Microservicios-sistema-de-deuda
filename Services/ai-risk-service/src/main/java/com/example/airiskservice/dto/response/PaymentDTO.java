@@ -2,13 +2,13 @@ package com.example.airiskservice.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-public record PaymentHistoryDTO(
-        String id,
+public record PaymentDTO(
+        Long id,
         String debtId,
-        String clientId,
         BigDecimal amount,
         LocalDate paymentDate,
-        LocalDate dueDate,
-        String note
-) {}
+        String note,
+        LocalDateTime createdAt) {
+}

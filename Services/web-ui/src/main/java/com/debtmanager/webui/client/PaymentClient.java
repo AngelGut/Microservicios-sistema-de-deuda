@@ -95,10 +95,10 @@ public class PaymentClient {
 
     // ── Registrar pago — adapta web-ui request al DTO del payment-service ────
     public void create(PaymentRequest request, String token) {
-        // web-ui envía: debtId (String), amount, reference, notes
-        // payment-service espera: debtId (Long), amount, paymentDate, note
+        // web-ui envía: debtId (String UUID), amount, reference, notes
+        // payment-service espera: debtId (String UUID), amount, paymentDate, note
         Map<String, Object> body = new HashMap<>();
-        body.put("debtId", Long.parseLong(request.debtId()));
+        body.put("debtId", request.debtId());
         body.put("amount", request.amount());
         body.put("paymentDate", LocalDate.now().toString());
         // Usar reference o notes como "note"

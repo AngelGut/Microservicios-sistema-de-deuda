@@ -12,6 +12,8 @@ public interface IDebtService {
 
     List<Debt> getDebtsByDebtorId(String debtorId);
 
+    List<Debt> getDebtsByCurrency(String currency);
+
     List<Debt> getAllDebts();
 
     Debt getDebtById(String id);

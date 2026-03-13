@@ -306,7 +306,7 @@
             </svg>
           </div>
           <div class="kpi-body">
-            <span class="kpi-label">Total Deuda Activa (DOP)</span>
+            <span class="kpi-label">Total Deuda Activa</span>
             <span class="kpi-value kpi-value-lg">
               RD$
               <span
@@ -335,7 +335,7 @@
             </svg>
           </div>
           <div class="kpi-body">
-            <span class="kpi-label">Cobrado en Pagos (DOP)</span>
+            <span class="kpi-label">Cobrado en Pagos</span>
             <span class="kpi-value kpi-value-lg">
               RD$
               <span
@@ -362,6 +362,61 @@
             <span class="kpi-value" th:text="${paidDebts ?: 0}">0</span>
           </div>
           <div class="kpi-badge kpi-badge-green">↑ Total</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon-orange">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total Deuda Activa</span>
+            <span class="kpi-value kpi-value-lg">
+              USD$
+              <span
+                th:text="${#numbers.formatDecimal(totalActiveAmountUSD ?: 0, 0, 'COMMA', 0, 'POINT')}"
+                >0</span
+              >
+            </span>
+          </div>
+          <div
+            class="kpi-badge kpi-badge-warn"
+            th:text="${activeDebtsUSD + ' activas'}"
+          >
+            0 activas
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon-green">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Cobrado en Pagos</span>
+            <span class="kpi-value kpi-value-lg">
+              USD$
+              <span
+                th:text="${#numbers.formatDecimal(totalCollectedUSD ?: 0, 0, 'COMMA', 0, 'POINT')}"
+                >0</span
+              >
+            </span>
+          </div>
+          <div class="kpi-badge kpi-badge-up">↑ Este mes</div>
         </div>
       </section>
 

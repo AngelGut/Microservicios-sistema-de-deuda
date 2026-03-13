@@ -696,7 +696,7 @@
                     th:if="${debt.status == 'ACTIVA'}"
                     class="action-btn pay"
                     title="Registrar pago"
-                    th:onclick="'abrirModalPago(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\',' + ${debt.currentBalance} + ',\'' + ${debt.currency} + '\')'"
+                    th:attr="onclick='abrirModalPago(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\',' + ${debt.currentBalance} + ',\'' + ${debt.currency} + '\')'"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -714,7 +714,7 @@
                   <button
                     class="action-btn"
                     title="Historial de pagos"
-                    th:onclick="'abrirHistorial(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\')'"
+                    th:attr="onclick='abrirHistorial(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\')'"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -787,7 +787,7 @@
         <div class="table-footer">
           <span id="countLabel"
             >Mostrando
-            <strong th:text="${#lists.size(debts)}">0</strong> deudas</span
+            <strong th:text="${debts != null ? #lists.size(debts) : 0}">0</strong> deudas</span
           >
         </div>
       </div>
@@ -1325,6 +1325,9 @@
         document.getElementById("modalNuevaDeuda").classList.remove("open");
         document.body.style.overflow = "";
         document.getElementById("formNuevaDeuda").reset();
+        const btn = document.getElementById("btnGuardarDeuda");
+        btn.classList.remove("loading");
+        btn.disabled = false;
       }
       function onDeudorChange() {
         document.getElementById("inputDebtorId").value =
@@ -1351,6 +1354,13 @@
         const btn = document.getElementById("btnGuardarDeuda");
         btn.classList.add("loading");
         btn.disabled = true;
+
+        // Re-enable button after 5 seconds as fallback (in case page doesn't reload)
+        setTimeout(() => {
+          btn.classList.remove("loading");
+          btn.disabled = false;
+        }, 5000);
+
         document.getElementById("formNuevaDeuda").submit();
         return false;
       }
