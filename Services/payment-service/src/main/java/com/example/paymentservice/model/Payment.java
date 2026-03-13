@@ -2,8 +2,8 @@ package com.example.paymentservice.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Entidad JPA que representa un pago registrado en el sistema.
@@ -38,13 +38,13 @@ public class Payment {
     private String note;
 
     /** Timestamp de auditoría: cuándo se registró en el sistema. */
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TEXT DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
-            createdAt = Instant.now();
+            createdAt = LocalDateTime.now();
         }
     }
 
@@ -83,7 +83,7 @@ public class Payment {
         return note;
     }
 
-    public Instant getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 }
