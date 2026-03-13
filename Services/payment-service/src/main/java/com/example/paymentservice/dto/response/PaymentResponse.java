@@ -14,7 +14,7 @@ import java.time.LocalDate;
  */
 public record PaymentResponse(
         Long id,
-        Long debtId,
+        String debtId,
         BigDecimal amount,
         LocalDate paymentDate,
         String note,
