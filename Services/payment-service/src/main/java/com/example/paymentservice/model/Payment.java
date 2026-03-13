@@ -5,13 +5,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Entidad JPA que representa un pago registrado en el sistema.
- *
- * <p>
- * Principio SRP: solo encapsula el estado persistible del pago.
- * Sin lógica de negocio aquí.
- */
 @Entity
 @Table(name = "payments")
 public class Payment {
@@ -21,24 +14,20 @@ public class Payment {
     @Column(name = "id", columnDefinition = "INTEGER")
     private Long id;
 
-    /** ID de la deuda asociada (referencia externa a debt-service). */
     @Column(name = "debt_id", nullable = false, length = 36)
     private String debtId;
 
-    /** Monto del pago. Nunca puede ser <= 0. */
     @Column(nullable = false)
     private BigDecimal amount;
 
-    /** Fecha en que se realizó el pago (fecha del negocio, no de creación). */
     @Column(name = "payment_date", nullable = false)
     private LocalDate paymentDate;
 
-    /** Nota opcional del operador. */
     @Column
     private String note;
 
-    /** Timestamp de auditoría: cuándo se registró en el sistema. */
-    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TEXT DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TEXT")
+    @Convert(converter = LocalDateTimeConverter.class)
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -48,10 +37,7 @@ public class Payment {
         }
     }
 
-    // ── Constructores ────────────────────────────────────────
-
     protected Payment() {
-        // Requerido por JPA
     }
 
     public Payment(String debtId, BigDecimal amount, LocalDate paymentDate, String note) {
@@ -60,8 +46,6 @@ public class Payment {
         this.paymentDate = paymentDate;
         this.note = note;
     }
-
-    // ── Getters (solo lectura – inmutabilidad post-creación) ──
 
     public Long getId() {
         return id;
