@@ -1085,17 +1085,21 @@
         debts.forEach(debt => {
           const item = document.createElement("div");
           item.className = "reminder-item";
-          item.innerHTML = \`
-            <div class="reminder-date-box" style="background:\${isPast ? 'linear-gradient(135deg,#7f1d1d,#b91c1c)' : 'linear-gradient(135deg,#4C5E1A,#6a8422)'}">
-              <div class="reminder-date-day">\${d}</div>
-              <div class="reminder-date-mon">\${MESES_SHORT[parseInt(m)-1]}</div>
-            </div>
-            <div class="reminder-body">
-              <div class="reminder-name">\${debt.description || 'Sin descripción'}</div>
-              <div class="reminder-desc">Balance: \${debt.currentBalance || '0'} \${debt.currency || 'RD$'}</div>
-            </div>
-            <span class="reminder-badge \${isPast ? 'badge-urgent' : 'badge-upcoming'}">\${isPast ? 'VENCIDA' : 'PRÓXIMA'}</span>
-          \`;
+          const bg = isPast
+            ? "linear-gradient(135deg,#7f1d1d,#b91c1c)"
+            : "linear-gradient(135deg,#4C5E1A,#6a8422)";
+          const badgeClass = isPast ? "badge-urgent" : "badge-upcoming";
+          const badgeText  = isPast ? "VENCIDA" : "PROXIMA";
+          item.innerHTML =
+            '<div class="reminder-date-box" style="background:' + bg + '">' +
+              '<div class="reminder-date-day">' + d + '</div>' +
+              '<div class="reminder-date-mon">' + MESES_SHORT[parseInt(m) - 1] + '</div>' +
+            '</div>' +
+            '<div class="reminder-body">' +
+              '<div class="reminder-name">' + (debt.description || "Sin descripcion") + '</div>' +
+              '<div class="reminder-desc">Balance: ' + (debt.currentBalance || "0") + ' ' + (debt.currency || "RD$") + '</div>' +
+            '</div>' +
+            '<span class="reminder-badge ' + badgeClass + '">' + badgeText + '</span>';
           list.appendChild(item);
         });
 
