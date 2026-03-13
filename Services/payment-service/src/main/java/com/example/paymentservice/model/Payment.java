@@ -20,7 +20,8 @@ public class Payment {
     @Column(nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "payment_date", nullable = false)
+    @Column(name = "payment_date", nullable = false, columnDefinition = "TEXT")
+    @Convert(converter = LocalDateConverter.class)
     private LocalDate paymentDate;
 
     @Column
