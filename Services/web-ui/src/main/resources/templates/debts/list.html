@@ -1,0 +1,1469 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deudas – Exterminadora Tejada</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
+    <style>
+      .page-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+      .toolbar-search {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--bg-card);
+        border: 1.5px solid var(--border);
+        border-radius: 9px;
+        padding: 8px 14px;
+      }
+      .toolbar-search input {
+        background: none;
+        border: none;
+        outline: none;
+        font-family: "Nunito", sans-serif;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        width: 100%;
+      }
+      .toolbar-search input::placeholder {
+        color: var(--text-muted);
+      }
+      .toolbar-search svg {
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+
+      .filter-pills {
+        display: flex;
+        gap: 6px;
+      }
+      .pill {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1.5px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: "Nunito", sans-serif;
+      }
+      .pill.active,
+      .pill:hover {
+        border-color: var(--green-light);
+        background: rgba(76, 94, 26, 0.2);
+        color: #8bc34a;
+      }
+
+      .debts-table-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .debts-table-card table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .debts-table-card thead tr {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid var(--border);
+      }
+      .debts-table-card th {
+        padding: 12px 16px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: left;
+      }
+      .debts-table-card td {
+        padding: 14px 16px;
+        font-size: 0.83rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        vertical-align: middle;
+      }
+      .debts-table-card tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .debts-table-card tbody tr {
+        transition: background 0.15s;
+      }
+      .debts-table-card tbody tr:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .debtor-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .debtor-avatar-sm {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: white;
+        flex-shrink: 0;
+      }
+      .debtor-name-sm {
+        font-weight: 700;
+        color: var(--white);
+        font-size: 0.85rem;
+      }
+      .debt-desc {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .amount-original {
+        color: var(--text-muted);
+        font-size: 0.82rem;
+      }
+      .amount-activa {
+        color: #fb923c;
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+      .amount-pagada {
+        color: #4ade80;
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+
+      .progress-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .progress-bar-bg {
+        width: 70px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+      }
+      .progress-pct {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        min-width: 30px;
+      }
+
+      .currency-pill {
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        background: rgba(41, 64, 108, 0.25);
+        color: #7ba7e0;
+      }
+      .status-activa {
+        background: rgba(251, 146, 60, 0.15);
+        color: #fb923c;
+        border: 1px solid rgba(251, 146, 60, 0.3);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+      .status-pagada {
+        background: rgba(74, 222, 128, 0.12);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+
+      .action-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+      }
+      .action-btn:hover {
+        background: rgba(76, 94, 26, 0.2);
+        color: #8bc34a;
+        border-color: rgba(76, 94, 26, 0.4);
+      }
+      .action-btn.pay:hover {
+        background: rgba(41, 64, 108, 0.3);
+        color: #7ba7e0;
+        border-color: rgba(41, 64, 108, 0.5);
+      }
+
+      .table-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-top: 1px solid var(--border);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+      }
+      .empty-state p {
+        font-size: 0.9rem;
+        margin: 12px 0 16px;
+      }
+
+      /* Modal pago */
+      .info-box {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      .info-box-name {
+        font-weight: 800;
+        color: var(--white);
+        font-size: 0.9rem;
+      }
+      .info-box-balance {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+      .info-box-balance span {
+        color: #fb923c;
+        font-weight: 800;
+      }
+
+      .notification-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(76, 94, 26, 0.12);
+        border: 1px solid rgba(76, 94, 26, 0.3);
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.78rem;
+        color: #8bc34a;
+        margin-top: 6px;
+      }
+
+      /* Modal historial */
+      .history-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .history-item:last-child {
+        border-bottom: none;
+      }
+      .history-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: rgba(76, 94, 26, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8bc34a;
+        flex-shrink: 0;
+      }
+      .history-body {
+        flex: 1;
+      }
+      .history-ref {
+        font-weight: 700;
+        color: var(--white);
+        font-size: 0.83rem;
+      }
+      .history-date {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+      .history-amount {
+        font-weight: 800;
+        color: #4ade80;
+        font-size: 0.9rem;
+      }
+      .history-status {
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        background: rgba(74, 222, 128, 0.12);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+      }
+      .history-empty {
+        text-align: center;
+        padding: 30px;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      @media (max-width: 768px) {
+        .hide-mobile {
+          display: none;
+        }
+        .page-toolbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img th:src="@{/images/logo.png}" alt="Logo" class="sidebar-logo-img" />
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-name">Exterminadora</span>
+          <span class="sidebar-brand-sub">Tejada · Sistema</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Principal</div>
+        <a href="/dashboard" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" /></svg
+          >Dashboard
+        </a>
+        <a href="/debtors" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+          >Deudores
+        </a>
+        <a href="/debts" class="nav-item active">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" /></svg
+          >Deudas
+        </a>
+        <a href="/payments" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
+          >Pagos Parciales
+        </a>
+        <a href="/reminders" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Recordatorios
+        </a>
+        <div class="nav-section-label" style="margin-top: 24px">Sistema</div>
+        <a href="/microservices" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 8 12 12 14 14" /></svg
+          >Microservicios
+        </a>
+        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" /></svg
+          >Swagger / APIs
+        </a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="user-avatar">U</div>
+        <div class="user-info">
+          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
+          <span class="user-status"
+            ><span class="status-dot"></span>JWT activo</span
+          >
+        </div>
+        <a href="/auth/logout" class="logout-btn" title="Cerrar sesión">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="16"
+            height="16"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </a>
+      </div>
+    </aside>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="20"
+              height="20"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="page-title">Deudas</h1>
+            <nav class="breadcrumb">
+              <a
+                href="/dashboard"
+                style="color: var(--text-muted); text-decoration: none"
+                >Inicio</a
+              >
+              <span class="bc-sep">›</span>
+              <span class="bc-active">Deudas</span>
+            </nav>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="icon-btn" title="Notificaciones">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="18"
+              height="18"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="btn-primary-action"
+            onclick="abrirModalNuevaDeuda()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              width="16"
+              height="16"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nueva Deuda
+          </button>
+        </div>
+      </header>
+
+      <!-- Error -->
+      <div th:if="${error}" class="alert-banner">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          width="16"
+          height="16"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span th:text="${error}"></span>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="page-toolbar">
+        <div class="toolbar-search">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="15"
+            height="15"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar por deudor, descripción…"
+          />
+        </div>
+        <div class="filter-pills">
+          <button class="pill active" onclick="filtrar('todas', this)">
+            Todas
+          </button>
+          <button class="pill" onclick="filtrar('ACTIVA', this)">
+            Activas
+          </button>
+          <button class="pill" onclick="filtrar('PAGADA', this)">
+            Pagadas
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="debts-table-card">
+        <table id="debtTable">
+          <thead>
+            <tr>
+              <th>Deudor</th>
+              <th>Monto Original</th>
+              <th>Saldo Actual</th>
+              <th class="hide-mobile">% Pagado</th>
+              <th class="hide-mobile">Moneda</th>
+              <th>Estado</th>
+              <th class="hide-mobile">Vencimiento</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              th:each="debt : ${debts}"
+              th:data-status="${debt.status}"
+              class="debt-row"
+              th:data-id="${debt.id}"
+              th:data-desc="${debt.description}"
+              th:data-balance="${debt.currentBalance}"
+              th:data-currency="${debt.currency}"
+            >
+              <td>
+                <div class="debtor-cell">
+                  <div
+                    class="debtor-avatar-sm"
+                    style="background: #4c5e1a"
+                    th:text="${#strings.substring(debt.description, 0, 1)}"
+                  >
+                    D
+                  </div>
+                  <div>
+                    <div class="debtor-name-sm" th:text="${debt.description}">
+                      Descripción
+                    </div>
+                    <div
+                      class="debt-desc"
+                      th:text="'Deuda #' + ${debt.id != null ? #strings.substring(debt.id,0,8) : '---'}"
+                    >
+                      id
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td
+                class="amount-original"
+                th:text="'RD$' + ${#numbers.formatDecimal(debt.originalAmount, 0, 'COMMA', 0, 'POINT')}"
+              >
+                RD$0
+              </td>
+              <td>
+                <div
+                  th:class="${debt.status == 'ACTIVA'} ? 'amount-activa' : 'amount-pagada'"
+                  th:text="'RD$' + ${#numbers.formatDecimal(debt.currentBalance, 0, 'COMMA', 0, 'POINT')}"
+                >
+                  RD$0
+                </div>
+              </td>
+              <td class="hide-mobile">
+                <div class="progress-wrap">
+                  <div class="progress-bar-bg">
+                    <div
+                      class="progress-bar-fill"
+                      th:style="'width:' + ${debt.originalAmount > 0 ? (100 - (debt.currentBalance / debt.originalAmount * 100)) : 0} + '%;background:' + (${debt.status == 'ACTIVA'} ? '#fb923c' : '#4ade80')"
+                    ></div>
+                  </div>
+                  <span
+                    class="progress-pct"
+                    th:text="${debt.originalAmount > 0 ? #numbers.formatDecimal(100 - (debt.currentBalance / debt.originalAmount * 100), 0, 'COMMA', 0, 'POINT') : 0} + '%'"
+                    >0%</span
+                  >
+                </div>
+              </td>
+              <td class="hide-mobile">
+                <span class="currency-pill" th:text="${debt.currency}"
+                  >DOP</span
+                >
+              </td>
+              <td>
+                <span
+                  th:class="${debt.status == 'ACTIVA'} ? 'status-activa' : 'status-pagada'"
+                  th:text="${debt.status}"
+                  >ESTADO</span
+                >
+              </td>
+              <td
+                class="hide-mobile"
+                style="color: var(--text-muted); font-size: 0.8rem"
+                th:text="${debt.dueDate ?: '-'}"
+              >
+                ---
+              </td>
+              <td>
+                <div style="display: flex; gap: 6px">
+                  <!-- Registrar pago (solo activas) -->
+                  <button
+                    th:if="${debt.status == 'ACTIVA'}"
+                    class="action-btn pay"
+                    title="Registrar pago"
+                    th:attr="onclick='abrirModalPago(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\',' + ${debt.currentBalance} + ',\'' + ${debt.currency} + '\')'"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      width="13"
+                      height="13"
+                    >
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                      <line x1="1" y1="10" x2="23" y2="10" />
+                    </svg>
+                  </button>
+                  <!-- Ver historial -->
+                  <button
+                    class="action-btn"
+                    title="Historial de pagos"
+                    th:attr="onclick='abrirHistorial(\'' + ${debt.id} + '\',\'' + ${debt.description} + '\')'"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      width="13"
+                      height="13"
+                    >
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(debts)}" id="emptyRow">
+              <td colspan="8">
+                <div class="empty-state">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    width="48"
+                    height="48"
+                    style="opacity: 0.3; display: block; margin: 0 auto"
+                  >
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  <p>No hay deudas registradas</p>
+                  <button
+                    type="button"
+                    class="btn-primary-action"
+                    onclick="abrirModalNuevaDeuda()"
+                  >
+                    + Registrar primera deuda
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr id="noResults" style="display: none">
+              <td colspan="8">
+                <div class="empty-state">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    width="48"
+                    height="48"
+                    style="opacity: 0.3; display: block; margin: 0 auto"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <p>No se encontraron resultados</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <span id="countLabel"
+            >Mostrando
+            <strong th:text="${debts != null ? #lists.size(debts) : 0}">0</strong> deudas</span
+          >
+        </div>
+      </div>
+    </main>
+
+    <!-- ══ MODAL NUEVA DEUDA ══ -->
+    <div class="modal-backdrop" id="modalNuevaDeuda">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <div class="modal-title">
+            <div class="modal-title-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                stroke-width="2.5"
+                width="18"
+                height="18"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <line x1="9" y1="15" x2="15" y2="15" />
+              </svg>
+            </div>
+            <span>Nueva Deuda</span>
+          </div>
+          <button class="modal-close" onclick="cerrarModalNuevaDeuda()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="16"
+              height="16"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <form
+          id="formNuevaDeuda"
+          method="post"
+          th:action="@{/debts}"
+          onsubmit="return submitDeuda(event);"
+        >
+          <input type="hidden" name="debtorId" id="inputDebtorId" />
+          <div class="modal-body">
+            <!-- Selector deudor -->
+            <div class="form-field">
+              <label class="form-label"
+                >Deudor <span class="required">*</span></label
+              >
+              <select
+                id="selectDeudor"
+                name="debtorIdSelect"
+                class="form-select"
+                onchange="onDeudorChange()"
+                required
+              >
+                <option value="">— Seleccionar deudor —</option>
+                <option
+                  th:each="d : ${allDebtors}"
+                  th:value="${d.id}"
+                  th:text="${d.name}"
+                >
+                  Deudor
+                </option>
+              </select>
+              <span class="field-error" id="errorDeudor"
+                >Selecciona un deudor.</span
+              >
+            </div>
+            <!-- Descripción -->
+            <div class="form-field">
+              <label class="form-label" for="inputDesc"
+                >Descripción <span class="required">*</span></label
+              >
+              <div class="form-input-wrap">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="15"
+                  height="15"
+                >
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+                <input
+                  type="text"
+                  id="inputDesc"
+                  name="description"
+                  class="form-input"
+                  placeholder="Ej: Préstamo personal, Materiales de construcción…"
+                  maxlength="300"
+                  required
+                />
+              </div>
+              <span class="field-error" id="errorDesc"
+                >La descripción es obligatoria.</span
+              >
+            </div>
+            <!-- Monto + Moneda -->
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label" for="inputMonto"
+                  >Monto Original <span class="required">*</span></label
+                >
+                <div class="form-input-wrap">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="15"
+                    height="15"
+                  >
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path
+                      d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                    />
+                  </svg>
+                  <input
+                    type="number"
+                    id="inputMonto"
+                    name="originalAmount"
+                    class="form-input"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0.01"
+                    required
+                  />
+                </div>
+                <span class="field-error" id="errorMonto"
+                  >Ingresa un monto válido.</span
+                >
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="inputMoneda"
+                  >Moneda <span class="required">*</span></label
+                >
+                <select
+                  id="inputMoneda"
+                  name="currency"
+                  class="form-select"
+                  required
+                >
+                  <option value="DOP" selected>🇩🇴 DOP — Peso Dominicano</option>
+                  <option value="USD">🇺🇸 USD — Dólar Americano</option>
+                </select>
+              </div>
+            </div>
+            <!-- Fecha vencimiento (opcional) -->
+            <div class="form-field">
+              <label class="form-label" for="inputDueDate"
+                >Fecha de Vencimiento
+                <span style="color: var(--text-muted); font-weight: 400"
+                  >(opcional)</span
+                ></label
+              >
+              <div class="form-input-wrap">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="15"
+                  height="15"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <input
+                  type="date"
+                  id="inputDueDate"
+                  name="dueDate"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-cancel"
+              onclick="cerrarModalNuevaDeuda()"
+            >
+              Cancelar
+            </button>
+            <button type="submit" class="btn-save" id="btnGuardarDeuda">
+              <svg
+                class="btn-save-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                width="15"
+                height="15"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <div class="btn-spinner"></div>
+              Guardar Deuda
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ══ MODAL REGISTRAR PAGO ══ -->
+    <div class="modal-backdrop" id="modalPago">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <div class="modal-title">
+            <div
+              class="modal-title-icon"
+              style="background: linear-gradient(135deg, #29406c, #3a5490)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                stroke-width="2.5"
+                width="18"
+                height="18"
+              >
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
+            </div>
+            <span>Registrar Pago Parcial</span>
+          </div>
+          <button class="modal-close" onclick="cerrarModalPago()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="16"
+              height="16"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <form
+          id="formPago"
+          method="post"
+          th:action="@{/payments}"
+          onsubmit="return submitPago(event);"
+        >
+          <input type="hidden" name="debtId" id="pagoDebtId" />
+          <div class="modal-body">
+            <div class="info-box">
+              <div class="info-box-name" id="pagoDebtDesc">
+                Descripción de la deuda
+              </div>
+              <div class="info-box-balance">
+                Saldo actual: <span id="pagoBalance">RD$0</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label" for="pagoMonto"
+                  >Monto del Pago <span class="required">*</span></label
+                >
+                <div class="form-input-wrap">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="15"
+                    height="15"
+                  >
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path
+                      d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                    />
+                  </svg>
+                  <input
+                    type="number"
+                    id="pagoMonto"
+                    name="amount"
+                    class="form-input"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0.01"
+                    required
+                  />
+                </div>
+                <span class="field-error" id="errorPagoMonto"
+                  >Ingresa un monto válido.</span
+                >
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="pagoRef"
+                  >Referencia
+                  <span style="color: var(--text-muted); font-weight: 400"
+                    >(opcional)</span
+                  ></label
+                >
+                <div class="form-input-wrap">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="15"
+                    height="15"
+                  >
+                    <path
+                      d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                    />
+                    <line x1="7" y1="7" x2="7.01" y2="7" />
+                  </svg>
+                  <input
+                    type="text"
+                    id="pagoRef"
+                    name="reference"
+                    class="form-input"
+                    placeholder="REF-001"
+                    maxlength="100"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="pagoNotes"
+                >Notas
+                <span style="color: var(--text-muted); font-weight: 400"
+                  >(opcional)</span
+                ></label
+              >
+              <div class="form-input-wrap">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="15"
+                  height="15"
+                >
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                </svg>
+                <input
+                  type="text"
+                  id="pagoNotes"
+                  name="notes"
+                  class="form-input"
+                  placeholder="Observaciones del pago…"
+                  maxlength="300"
+                />
+              </div>
+            </div>
+            <div class="notification-bar">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="14"
+                height="14"
+              >
+                <path
+                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              Se enviará recibo de pago por correo electrónico
+              (notification-service :8086)
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-cancel"
+              onclick="cerrarModalPago()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn-save"
+              id="btnAplicarPago"
+              style="
+                background: linear-gradient(135deg, #29406c, #3a5490);
+                box-shadow: 0 4px 14px rgba(41, 64, 108, 0.4);
+              "
+            >
+              <svg
+                class="btn-save-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                width="15"
+                height="15"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <div class="btn-spinner"></div>
+              Aplicar Pago
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ══ MODAL HISTORIAL DE PAGOS ══ -->
+    <div class="modal-backdrop" id="modalHistorial">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        style="max-width: 500px"
+      >
+        <div class="modal-header">
+          <div class="modal-title">
+            <div
+              class="modal-title-icon"
+              style="background: linear-gradient(135deg, #4c5e1a, #6a8422)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                stroke-width="2.5"
+                width="18"
+                height="18"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <span id="historialTitle">Historial de Pagos</span>
+          </div>
+          <button class="modal-close" onclick="cerrarHistorial()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="16"
+              height="16"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="modal-body"
+          id="historialBody"
+          style="max-height: 400px; overflow-y: auto"
+        >
+          <div class="history-empty">Cargando historial…</div>
+        </div>
+        <div class="modal-footer" style="justify-content: center">
+          <button type="button" class="btn-cancel" onclick="cerrarHistorial()">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("open");
+      }
+
+      // ── Búsqueda ──
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", function () {
+          const q = this.value.toLowerCase();
+          const rows = document.querySelectorAll(
+            "#debtTable tbody tr.debt-row",
+          );
+          let visible = 0;
+          rows.forEach((row) => {
+            const match = row.textContent.toLowerCase().includes(q);
+            row.style.display = match ? "" : "none";
+            if (match) visible++;
+          });
+          document.getElementById("noResults").style.display =
+            visible === 0 ? "" : "none";
+          document.getElementById("countLabel").innerHTML =
+            `Mostrando <strong>${visible}</strong> deudas`;
+        });
+
+      // ── Filtros ──
+      function filtrar(estado, btn) {
+        document
+          .querySelectorAll(".pill")
+          .forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        const rows = document.querySelectorAll("#debtTable tbody tr.debt-row");
+        let visible = 0;
+        rows.forEach((row) => {
+          const match = estado === "todas" || row.dataset.status === estado;
+          row.style.display = match ? "" : "none";
+          if (match) visible++;
+        });
+        document.getElementById("countLabel").innerHTML =
+          `Mostrando <strong>${visible}</strong> deudas`;
+      }
+
+      // ── Modal Nueva Deuda ──
+      function abrirModalNuevaDeuda(debtorId) {
+        if (debtorId) document.getElementById("selectDeudor").value = debtorId;
+        document.getElementById("modalNuevaDeuda").classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+      function cerrarModalNuevaDeuda() {
+        document.getElementById("modalNuevaDeuda").classList.remove("open");
+        document.body.style.overflow = "";
+        document.getElementById("formNuevaDeuda").reset();
+        const btn = document.getElementById("btnGuardarDeuda");
+        btn.classList.remove("loading");
+        btn.disabled = false;
+      }
+      function onDeudorChange() {
+        document.getElementById("inputDebtorId").value =
+          document.getElementById("selectDeudor").value;
+      }
+      function submitDeuda(e) {
+        e.preventDefault();
+        let valid = true;
+        const deudor = document.getElementById("selectDeudor").value;
+        document
+          .getElementById("errorDeudor")
+          .classList.toggle("visible", !deudor);
+        if (!deudor) valid = false;
+        const desc = document.getElementById("inputDesc").value.trim();
+        document.getElementById("errorDesc").classList.toggle("visible", !desc);
+        if (!desc) valid = false;
+        const monto = parseFloat(document.getElementById("inputMonto").value);
+        document
+          .getElementById("errorMonto")
+          .classList.toggle("visible", !monto || monto <= 0);
+        if (!monto || monto <= 0) valid = false;
+        if (!valid) return false;
+        document.getElementById("inputDebtorId").value = deudor;
+        const btn = document.getElementById("btnGuardarDeuda");
+        btn.classList.add("loading");
+        btn.disabled = true;
+
+        // Re-enable button after 5 seconds as fallback (in case page doesn't reload)
+        setTimeout(() => {
+          btn.classList.remove("loading");
+          btn.disabled = false;
+        }, 5000);
+
+        document.getElementById("formNuevaDeuda").submit();
+        return false;
+      }
+
+      // ── Modal Pago ──
+      function abrirModalPago(debtId, desc, balance, currency) {
+        document.getElementById("pagoDebtId").value = debtId;
+        document.getElementById("pagoDebtDesc").textContent = desc;
+        document.getElementById("pagoBalance").textContent =
+          currency + "$" + Number(balance).toLocaleString("es-DO");
+        document.getElementById("modalPago").classList.add("open");
+        document.body.style.overflow = "hidden";
+        setTimeout(() => document.getElementById("pagoMonto").focus(), 100);
+      }
+      function cerrarModalPago() {
+        document.getElementById("modalPago").classList.remove("open");
+        document.body.style.overflow = "";
+        document.getElementById("formPago").reset();
+      }
+      function submitPago(e) {
+        e.preventDefault();
+        const monto = parseFloat(document.getElementById("pagoMonto").value);
+        document
+          .getElementById("errorPagoMonto")
+          .classList.toggle("visible", !monto || monto <= 0);
+        if (!monto || monto <= 0) return false;
+        const btn = document.getElementById("btnAplicarPago");
+        btn.classList.add("loading");
+        btn.disabled = true;
+        document.getElementById("formPago").submit();
+        return false;
+      }
+
+      // ── Modal Historial ──
+      function abrirHistorial(debtId, desc) {
+        document.getElementById("historialTitle").textContent =
+          "Historial – " + desc;
+        document.getElementById("historialBody").innerHTML =
+          '<div class="history-empty">Cargando historial…</div>';
+        document.getElementById("modalHistorial").classList.add("open");
+        document.body.style.overflow = "hidden";
+
+        // Llamada real al backend cuando payment-service esté listo
+        fetch("/payments/by-debt/" + debtId)
+          .then((r) => r.json())
+          .then((data) => renderHistorial(data))
+          .catch(() => {
+            document.getElementById("historialBody").innerHTML =
+              '<div class="history-empty">Historial no disponible — payment-service no está activo aún.</div>';
+          });
+      }
+      function renderHistorial(payments) {
+        const body = document.getElementById("historialBody");
+        if (!payments || payments.length === 0) {
+          body.innerHTML =
+            '<div class="history-empty">Sin pagos registrados para esta deuda.</div>';
+          return;
+        }
+        body.innerHTML = payments
+          .map(
+            (p) => `
+        <div class="history-item">
+          <div class="history-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div class="history-body">
+            <div class="history-ref">${p.reference || "Sin referencia"} · ${p.notes || ""}</div>
+            <div class="history-date">${p.paidAt || "-"}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <span class="history-amount">+RD$${Number(p.amount).toLocaleString("es-DO")}</span>
+            <span class="history-status">${p.status || "APPLIED"}</span>
+          </div>
+        </div>
+      `,
+          )
+          .join("");
+      }
+      function cerrarHistorial() {
+        document.getElementById("modalHistorial").classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
+      // ── Cerrar con Escape ──
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          cerrarModalNuevaDeuda();
+          cerrarModalPago();
+          cerrarHistorial();
+        }
+      });
+      ["modalNuevaDeuda", "modalPago", "modalHistorial"].forEach((id) => {
+        document.getElementById(id).addEventListener("click", function (e) {
+          if (e.target === this) {
+            cerrarModalNuevaDeuda();
+            cerrarModalPago();
+            cerrarHistorial();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

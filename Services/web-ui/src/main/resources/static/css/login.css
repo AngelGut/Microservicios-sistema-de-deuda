@@ -1,0 +1,325 @@
+:root {
+  --green: #4c5e1a;
+  --green-light: #6a8422;
+  --green-glow: rgba(76, 94, 26, 0.35);
+  --logo-bg: #172238; /* color exacto del fondo del logo */
+  --blue: #29406c;
+  --blue-dark: #1a2a4a;
+  --blue-darker: #0f1a30;
+  --white: #ffffff;
+  --gray: #a0aec0;
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Nunito", sans-serif;
+  background: var(--blue-darker);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: -20%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(76, 94, 26, 0.12) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  bottom: -20%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(41, 64, 108, 0.25) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* ── WRAPPER ── */
+.wrapper {
+  display: flex;
+  width: 920px;
+  max-width: 96vw;
+  min-height: 580px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+  position: relative;
+  z-index: 1;
+  animation: fadeUp 0.55s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ══════════════════════════════
+   LEFT PANEL
+   Fondo = mismo color del logo
+   para integración perfecta
+══════════════════════════════ */
+.panel-left {
+  flex: 1;
+  background: var(--logo-bg); /* #172238 — idéntico al fondo del PNG */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Sutil viñeta en bordes para dar profundidad */
+.panel-left::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(10, 16, 28, 0.55) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LOGO ── */
+.logo-area {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.logo-area img {
+  width: 310px; /* grande y notorio */
+  height: 310px;
+  object-fit: contain;
+  /* sin background extra — se funde con el panel */
+  filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.5)) brightness(1.06)
+    saturate(1.1);
+  transition: transform 0.4s ease;
+}
+
+.logo-area img:hover {
+  transform: scale(1.04);
+}
+
+/* ── DIVIDER & DESC ── */
+.divider {
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #6b8c1a, transparent);
+  border-radius: 2px;
+  margin: 20px auto 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.panel-desc {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.38);
+  text-align: center;
+  line-height: 1.75;
+  max-width: 210px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════
+   RIGHT PANEL — formulario
+══════════════════════════════ */
+.panel-right {
+  flex: 1.1;
+  background: #0f1a30;
+  padding: 52px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.form-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 38px;
+  letter-spacing: 3px;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.form-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 1px;
+  margin-bottom: 32px;
+  text-transform: uppercase;
+}
+
+/* Error */
+.alert-error {
+  background: rgba(220, 53, 69, 0.13);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #f87171;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Fields */
+.field {
+  margin-bottom: 20px;
+}
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(160, 174, 192, 0.8);
+  margin-bottom: 8px;
+}
+
+.field-wrap {
+  position: relative;
+}
+
+.field-wrap svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: rgba(160, 174, 192, 0.5);
+  pointer-events: none;
+}
+
+.field input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  padding: 13px 16px 13px 42px;
+  font-family: "Nunito", sans-serif;
+  font-size: 14px;
+  color: var(--white);
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+
+.field input::placeholder {
+  color: rgba(255, 255, 255, 0.18);
+}
+
+.field input:focus {
+  border-color: rgba(76, 94, 26, 0.7);
+  background: rgba(76, 94, 26, 0.06);
+  box-shadow: 0 0 0 3px rgba(76, 94, 26, 0.18);
+}
+
+/* Button */
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #4c5e1a 0%, #6a8422 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-family: "Nunito", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 22px rgba(76, 94, 26, 0.45);
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(76, 94, 26, 0.55);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+
+/* Footer */
+.footer-note {
+  margin-top: 26px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.18);
+  text-align: center;
+  letter-spacing: 0.4px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .panel-left {
+    display: none;
+  }
+  .panel-right {
+    padding: 40px 28px;
+  }
+  .wrapper {
+    min-height: auto;
+  }
+}

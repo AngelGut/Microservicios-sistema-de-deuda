@@ -1,0 +1,1078 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recordatorios – Exterminadora Tejada</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
+    <style>
+      .reminders-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 20px;
+        align-items: start;
+      }
+
+      /* ── Calendario ── */
+      .calendar-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .calendar-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .calendar-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--white);
+      }
+      .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .cal-nav-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        font-family: "Nunito", sans-serif;
+      }
+      .cal-nav-btn:hover {
+        background: rgba(255, 255, 255, 0.09);
+        color: var(--white);
+      }
+      .cal-month-label {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--white);
+        min-width: 160px;
+        text-align: center;
+      }
+
+      .calendar-grid {
+        padding: 20px;
+      }
+      .cal-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        margin-bottom: 8px;
+      }
+      .cal-weekday {
+        text-align: center;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 6px 0;
+      }
+      .cal-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+      }
+      .cal-day {
+        aspect-ratio: 1;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: default;
+        position: relative;
+        transition: background 0.15s;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+      .cal-day.other-month {
+        opacity: 0.25;
+      }
+      .cal-day.today {
+        background: rgba(41, 64, 108, 0.3);
+        color: #7ba7e0;
+        border: 1.5px solid rgba(41, 64, 108, 0.5);
+        font-weight: 800;
+      }
+      .cal-day.has-reminder {
+        color: var(--white);
+        cursor: pointer;
+      }
+      .cal-day.has-reminder:hover {
+        background: rgba(76, 94, 26, 0.2);
+      }
+      .cal-day.selected {
+        background: rgba(76, 94, 26, 0.3);
+        color: #8bc34a;
+        border: 1.5px solid rgba(76, 94, 26, 0.5);
+      }
+      .cal-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #fb923c;
+        position: absolute;
+        bottom: 4px;
+      }
+      .cal-dot.urgent {
+        background: #f87171;
+      }
+
+      .calendar-legend {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 20px;
+        border-top: 1px solid var(--border);
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+      }
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      /* ── Panel derecho ── */
+      .reminders-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .panel-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .panel-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--white);
+      }
+      .reminder-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        transition: background 0.15s;
+        cursor: pointer;
+      }
+      .reminder-item:last-child {
+        border-bottom: none;
+      }
+      .reminder-item:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .reminder-date-box {
+        min-width: 42px;
+        height: 46px;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .reminder-date-day {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+      }
+      .reminder-date-mon {
+        font-size: 0.58rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+      }
+
+      .reminder-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .reminder-name {
+        font-weight: 700;
+        color: var(--white);
+        font-size: 0.83rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .reminder-desc {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-style: italic;
+      }
+
+      .reminder-badge {
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+      .badge-pending {
+        background: rgba(251, 146, 60, 0.15);
+        color: #fb923c;
+        border: 1px solid rgba(251, 146, 60, 0.3);
+      }
+      .badge-urgent {
+        background: rgba(248, 113, 113, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+      .badge-upcoming {
+        background: rgba(76, 94, 26, 0.2);
+        color: #8bc34a;
+        border: 1px solid rgba(76, 94, 26, 0.3);
+      }
+
+      .scheduler-note {
+        padding: 12px 16px;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        border-top: 1px solid var(--border);
+      }
+      .scheduler-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        flex-shrink: 0;
+        margin-top: 3px;
+      }
+
+      .empty-reminders {
+        text-align: center;
+        padding: 30px 16px;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+      }
+
+      @media (max-width: 900px) {
+        .reminders-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .cal-day {
+          font-size: 0.75rem;
+          border-radius: 7px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img th:src="@{/images/logo.png}" alt="Logo" class="sidebar-logo-img" />
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-name">Exterminadora</span>
+          <span class="sidebar-brand-sub">Tejada · Sistema</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Principal</div>
+        <a href="/dashboard" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" /></svg
+          >Dashboard
+        </a>
+        <a href="/debtors" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+          >Deudores
+        </a>
+        <a href="/debts" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" /></svg
+          >Deudas
+        </a>
+
+        <a href="/payments" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
+          >Pagos Parciales
+        </a>
+
+        <a href="/reminders" class="nav-item active">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" /></svg
+          >Recordatorios
+          <span class="nav-badge" th:text="${#lists.size(reminders)}">0</span>
+        </a>
+        <div class="nav-section-label" style="margin-top: 24px">Sistema</div>
+        <a href="/microservices" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 8 12 12 14 14" /></svg
+          >Microservicios
+        </a>
+        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" /></svg
+          >Swagger / APIs
+        </a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="user-avatar">U</div>
+        <div class="user-info">
+          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
+          <span class="user-status"
+            ><span class="status-dot"></span>JWT activo</span
+          >
+        </div>
+        <a href="/auth/logout" class="logout-btn" title="Cerrar sesión">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="16"
+            height="16"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </a>
+      </div>
+    </aside>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="20"
+              height="20"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="page-title">Recordatorios</h1>
+            <nav class="breadcrumb">
+              <a
+                href="/dashboard"
+                style="color: var(--text-muted); text-decoration: none"
+                >Inicio</a
+              >
+              <span class="bc-sep">›</span>
+              <span class="bc-active">Recordatorios</span>
+            </nav>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="icon-btn" title="Notificaciones">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="18"
+              height="18"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="btn-primary-action"
+            onclick="abrirModalRecordatorio()"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              width="16"
+              height="16"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nuevo Recordatorio
+          </button>
+        </div>
+      </header>
+
+      <!-- Error / Success -->
+      <div th:if="${error}" class="alert-banner">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          width="16"
+          height="16"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span th:text="${error}"></span>
+      </div>
+
+      <!-- Layout principal -->
+      <div class="reminders-layout">
+        <!-- ── Calendario ── -->
+        <div class="calendar-card">
+          <div class="calendar-card-header">
+            <div class="calendar-card-title">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="16"
+                height="16"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Calendario de Recordatorios
+            </div>
+            <div class="calendar-nav">
+              <button class="cal-nav-btn" onclick="cambiarMes(-1)">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="14"
+                  height="14"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span class="cal-month-label" id="calMonthLabel">Cargando…</span>
+              <button class="cal-nav-btn" onclick="cambiarMes(1)">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="14"
+                  height="14"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="calendar-grid">
+            <div class="cal-weekdays">
+              <div class="cal-weekday">DOM</div>
+              <div class="cal-weekday">LUN</div>
+              <div class="cal-weekday">MAR</div>
+              <div class="cal-weekday">MIE</div>
+              <div class="cal-weekday">JUE</div>
+              <div class="cal-weekday">VIE</div>
+              <div class="cal-weekday">SÁB</div>
+            </div>
+            <div class="cal-days" id="calDays"><!-- generado por JS --></div>
+          </div>
+
+          <div class="calendar-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #7ba7e0"></div>
+              Hoy
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #fb923c"></div>
+              Tiene recordatorio
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #f87171"></div>
+              Vencido / Urgente
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Panel derecho ── -->
+        <div class="reminders-panel">
+          <!-- Recordatorios próximos -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="15"
+                height="15"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Recordatorios Pendientes
+            </div>
+
+            <!-- Lista desde backend -->
+            <div
+              th:each="reminder : ${reminders}"
+              class="reminder-item"
+              th:onclick="'verDiaReminder(\'' + ${reminder.dueDate} + '\')'"
+            >
+              <div
+                class="reminder-date-box"
+                th:style="${reminder.dueDate != null and #strings.substring(reminder.dueDate,8,10) <= '08'} ? 'background:linear-gradient(135deg,#7f1d1d,#b91c1c)' : 'background:linear-gradient(135deg,#4C5E1A,#6a8422)'"
+              >
+                <div
+                  class="reminder-date-day"
+                  th:text="${reminder.dueDate != null ? #strings.substring(reminder.dueDate,8,10) : '--'}"
+                >
+                  15
+                </div>
+                <div
+                  class="reminder-date-mon"
+                  th:text="${reminder.dueDate != null ? #strings.substring(reminder.dueDate,5,7) : '--'}"
+                >
+                  MAR
+                </div>
+              </div>
+              <div class="reminder-body">
+                <div
+                  class="reminder-name"
+                  th:text="${reminder.debtorName ?: 'Deudor'}"
+                >
+                  Nombre
+                </div>
+                <div
+                  class="reminder-desc"
+                  th:text="${reminder.description ?: '-'}"
+                >
+                  Descripción
+                </div>
+              </div>
+              <span class="reminder-badge badge-pending">PENDING</span>
+            </div>
+
+            <!-- Empty state -->
+            <div th:if="${#lists.isEmpty(reminders)}" class="empty-reminders">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                width="36"
+                height="36"
+                style="opacity: 0.3; display: block; margin: 0 auto 10px"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              No hay recordatorios próximos
+            </div>
+
+            <div class="scheduler-note">
+              <div class="scheduler-dot"></div>
+              Scheduler ejecuta diariamente · Enviará emails a vencidos
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ══ MODAL NUEVO RECORDATORIO ══ -->
+    <div class="modal-backdrop" id="modalRecordatorio">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <div class="modal-title">
+            <div class="modal-title-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                stroke-width="2.5"
+                width="18"
+                height="18"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+                <line x1="12" y1="16" x2="12" y2="20" />
+                <line x1="10" y1="18" x2="14" y2="18" />
+              </svg>
+            </div>
+            <span>Nuevo Recordatorio</span>
+          </div>
+          <button class="modal-close" onclick="cerrarModalRecordatorio()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="16"
+              height="16"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <form
+          id="formRecordatorio"
+          method="post"
+          th:action="@{/reminders}"
+          onsubmit="return submitRecordatorio(event);"
+        >
+          <div class="modal-body">
+            <!-- Deuda relacionada -->
+            <div class="form-field">
+              <label class="form-label"
+                >Deuda Relacionada <span class="required">*</span></label
+              >
+              <select
+                id="selectDeudaReminder"
+                name="debtId"
+                class="form-select"
+                required
+              >
+                <option value="">— Seleccionar deuda —</option>
+                <option
+                  th:each="debt : ${activeDebts}"
+                  th:value="${debt.id}"
+                  th:text="${debt.description}"
+                >
+                  Deuda
+                </option>
+              </select>
+              <span class="field-error" id="errorDeudaReminder"
+                >Selecciona una deuda.</span
+              >
+            </div>
+            <!-- Descripción -->
+            <div class="form-field">
+              <label class="form-label" for="reminderDesc"
+                >Descripción <span class="required">*</span></label
+              >
+              <div class="form-input-wrap">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  width="15"
+                  height="15"
+                >
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                </svg>
+                <input
+                  type="text"
+                  id="reminderDesc"
+                  name="description"
+                  class="form-input"
+                  placeholder="Ej: Cobro mensual préstamo, Seguimiento deuda…"
+                  maxlength="200"
+                  required
+                />
+              </div>
+              <span class="field-error" id="errorReminderDesc"
+                >La descripción es obligatoria.</span
+              >
+            </div>
+            <!-- Fecha vencimiento -->
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label" for="reminderDate"
+                  >Fecha de Recordatorio <span class="required">*</span></label
+                >
+                <div class="form-input-wrap">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="15"
+                    height="15"
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <input
+                    type="date"
+                    id="reminderDate"
+                    name="dueDate"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <span class="field-error" id="errorReminderDate"
+                  >Selecciona una fecha.</span
+                >
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="reminderDays"
+                  >Días de anticipación</label
+                >
+                <div class="form-input-wrap">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="15"
+                    height="15"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <input
+                    type="number"
+                    id="reminderDays"
+                    name="daysBefore"
+                    class="form-input"
+                    placeholder="3"
+                    min="1"
+                    max="30"
+                    value="3"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- Nota notificación -->
+            <div class="notification-bar" style="margin-top: 4px">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                width="14"
+                height="14"
+              >
+                <path
+                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              El deudor recibirá notificación por correo electrónico
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-cancel"
+              onclick="cerrarModalRecordatorio()"
+            >
+              Cancelar
+            </button>
+            <button type="submit" class="btn-save" id="btnGuardarReminder">
+              <svg
+                class="btn-save-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                width="15"
+                height="15"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <div class="btn-spinner"></div>
+              Guardar Recordatorio
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Datos de recordatorios para el calendario (inyectados desde Thymeleaf) -->
+    <script th:inline="javascript">
+      const REMINDERS_DATA = /*[[${remindersJson}]]*/ [];
+    </script>
+
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("open");
+      }
+
+      // ── Calendario ──
+      const MESES = [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre",
+      ];
+      const today = new Date();
+      let currentYear = today.getFullYear();
+      let currentMonth = today.getMonth(); // 0-based
+
+      // Construir set de fechas con recordatorio
+      const reminderDates = new Set();
+      if (Array.isArray(REMINDERS_DATA)) {
+        REMINDERS_DATA.forEach((r) => {
+          if (r.dueDate) reminderDates.add(r.dueDate.substring(0, 10));
+        });
+      }
+
+      function renderCalendar(year, month) {
+        document.getElementById("calMonthLabel").textContent =
+          MESES[month] + " De " + year;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const prevDays = new Date(year, month, 0).getDate();
+
+        const todayStr = today.toISOString().substring(0, 10);
+        const container = document.getElementById("calDays");
+        container.innerHTML = "";
+
+        // Días del mes anterior
+        for (let i = firstDay - 1; i >= 0; i--) {
+          const d = document.createElement("div");
+          d.className = "cal-day other-month";
+          d.textContent = prevDays - i;
+          container.appendChild(d);
+        }
+
+        // Días del mes actual
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr =
+            year +
+            "-" +
+            String(month + 1).padStart(2, "0") +
+            "-" +
+            String(d).padStart(2, "0");
+
+          const div = document.createElement("div");
+          div.className = "cal-day";
+          div.textContent = d;
+
+          if (dateStr === todayStr) div.classList.add("today");
+
+          if (reminderDates.has(dateStr)) {
+            div.classList.add("has-reminder");
+            const dot = document.createElement("div");
+            const isPast = dateStr < todayStr;
+            dot.className = "cal-dot" + (isPast ? " urgent" : "");
+            div.appendChild(dot);
+            div.title = "Tiene recordatorio";
+            div.onclick = () => verDia(dateStr);
+          }
+
+          container.appendChild(div);
+        }
+
+        // Días del mes siguiente
+        const total = firstDay + daysInMonth;
+        const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+        for (let d = 1; d <= remaining; d++) {
+          const div = document.createElement("div");
+          div.className = "cal-day other-month";
+          div.textContent = d;
+          container.appendChild(div);
+        }
+      }
+
+      function cambiarMes(delta) {
+        currentMonth += delta;
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+        renderCalendar(currentYear, currentMonth);
+      }
+
+      function verDia(dateStr) {
+        // Resaltar día seleccionado
+        document
+          .querySelectorAll(".cal-day.selected")
+          .forEach((d) => d.classList.remove("selected"));
+        event.currentTarget.classList.add("selected");
+      }
+
+      function verDiaReminder(dateStr) {
+        if (!dateStr) return;
+        const parts = dateStr.split("-");
+        const y = parseInt(parts[0]);
+        const m = parseInt(parts[1]) - 1;
+        if (y !== currentYear || m !== currentMonth) {
+          currentYear = y;
+          currentMonth = m;
+          renderCalendar(currentYear, currentMonth);
+        }
+      }
+
+      // Inicializar calendario al cargar
+      renderCalendar(currentYear, currentMonth);
+
+      // ── Modal ──
+      function abrirModalRecordatorio() {
+        document.getElementById("modalRecordatorio").classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+      function cerrarModalRecordatorio() {
+        document.getElementById("modalRecordatorio").classList.remove("open");
+        document.body.style.overflow = "";
+        document.getElementById("formRecordatorio").reset();
+      }
+      function submitRecordatorio(e) {
+        e.preventDefault();
+        let valid = true;
+        const deuda = document.getElementById("selectDeudaReminder").value;
+        document
+          .getElementById("errorDeudaReminder")
+          .classList.toggle("visible", !deuda);
+        if (!deuda) valid = false;
+        const desc = document.getElementById("reminderDesc").value.trim();
+        document
+          .getElementById("errorReminderDesc")
+          .classList.toggle("visible", !desc);
+        if (!desc) valid = false;
+        const fecha = document.getElementById("reminderDate").value;
+        document
+          .getElementById("errorReminderDate")
+          .classList.toggle("visible", !fecha);
+        if (!fecha) valid = false;
+        if (!valid) return false;
+        const btn = document.getElementById("btnGuardarReminder");
+        btn.classList.add("loading");
+        btn.disabled = true;
+        document.getElementById("formRecordatorio").submit();
+        return false;
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") cerrarModalRecordatorio();
+      });
+      document
+        .getElementById("modalRecordatorio")
+        .addEventListener("click", function (e) {
+          if (e.target === this) cerrarModalRecordatorio();
+        });
+    </script>
+  </body>
+</html>

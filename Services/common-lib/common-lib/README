@@ -1,0 +1,56 @@
+Relación lógica (qué “responsabilidad” vive dónde)
+
+common-lib
+├── api/         -> Formato estándar de respuestas (OK / ERROR) para TODOS los servicios
+├── exception/   -> Excepciones + handler global para convertir errores en ApiErrorResponse
+└── trace/       -> TraceId (filtro + util) para logs y trazabilidad entre servicios
+resources/META-INF/spring/
+└── AutoConfiguration.imports -> le dice a Spring qué auto-config cargar al incluir el JAR
+
+Cómo se usa desde cada microservicio
+
+auth-service
+debt-service
+payment-service
+gateway-service
+   └── (dependen de) ---> common-lib (JAR)
+
+   En cada microservicio (ejemplo):
+
+Importas la dependencia common-lib en su pom.xml
+
+Automáticamente:
+
+se activa el TraceIdFilter (si lo registraste como auto-config)
+
+se aplica el GlobalExceptionHandler
+
+puedes usar ApiResponse / ApiErrorResponse en tus controllers
+
+
+Flujo de una request (para que se vea “dentro de qué” en ejecución)
+Cliente
+  |
+  v
+[Controller del microservicio]
+  |
+  |--(si todo OK)--> devuelve ApiResponse<T>
+  |
+  |--(si hay error)--> lanza ApiException o excepción normal
+                         |
+                         v
+                 GlobalExceptionHandler
+                         |
+                         v
+                 ApiErrorResponse (con traceId)
+
+
+Trazabilidad (TraceId) en runtime
+
+Request entra al microservicio
+   |
+   v
+TraceIdFilter  -> crea/lee traceId (header) y lo guarda (ThreadLocal/MDC)
+   |
+   v
+Logs + Responses incluyen traceId

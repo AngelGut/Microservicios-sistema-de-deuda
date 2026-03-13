@@ -1,0 +1,7 @@
+CREATE TABLE debtors (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(120),
+    document VARCHAR(50) UNIQUE,
+    email VARCHAR(120),
+    type VARCHAR(20)
+);

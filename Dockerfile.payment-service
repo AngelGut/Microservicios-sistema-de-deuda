@@ -1,0 +1,23 @@
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+
+WORKDIR /build
+COPY . .
+
+RUN mvn -pl Services/payment-service -am clean package -DskipTests
+
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+# crear carpeta para SQLite
+RUN mkdir -p /app/data
+
+COPY --from=build /build/Services/payment-service/target/*.jar app.jar
+
+EXPOSE 8084
+
+CMD ["sh", "-c", "java \
+  -Dserver.port=${PORT:-8084} \
+  -Dapp.debt-service.base-url=${DEBT_SERVICE_URL:-http://localhost:8083} \
+  -Dapp.jwt.secret=${JWT_SECRET:-dev-secret-key} \
+  -jar /app/app.jar"]
