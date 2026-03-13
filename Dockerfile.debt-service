@@ -11,9 +11,6 @@ WORKDIR /app
 
 COPY --from=build /build/Services/debt-service/target/*.jar app.jar
 
-EXPOSE 8083
+EXPOSE 8080
 
-CMD ["sh", "-c", "java \
-  -Dserver.port=${PORT:-8083} \
-  -Djwt.secret=${JWT_SECRET} \
-  -jar /app/app.jar"]
+CMD ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar /app/app.jar"]
