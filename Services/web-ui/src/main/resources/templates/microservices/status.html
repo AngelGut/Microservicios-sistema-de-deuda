@@ -486,8 +486,9 @@
           </div>
           <div class="service-desc">
             Spring Cloud Gateway · Enrutamiento + CORS + JWT filter
-          </div></div>
           </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-gateway" style="width:8%"></div></div>
+        </div>
 
         <!-- auth-service :8081 -->
         <div class="service-card" id="card-auth">
@@ -499,8 +500,9 @@
             </div>
             <span class="service-latency latency-unknown" id="lat-auth">—</span>
           </div>
-          <div class="service-desc">JWT HS256 · BCrypt · Roles ADMIN/USER</div></div>
-          </div>
+          <div class="service-desc">JWT HS256 · BCrypt · Roles ADMIN/USER</div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-auth" style="width:8%"></div></div>
+        </div>
 
         <!-- debtor-service :8082 -->
         <div class="service-card" id="card-debtor">
@@ -516,8 +518,9 @@
           </div>
           <div class="service-desc">
             CRUD Deudores · PERSONA/COMPAÑÍA · Cédula/RNC
-          </div></div>
           </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-debtor" style="width:8%"></div></div>
+        </div>
 
         <!-- debt-service :8083 -->
         <div class="service-card" id="card-debt">
@@ -531,8 +534,9 @@
           </div>
           <div class="service-desc">
             Deudas · Saldo automático · apply-payment endpoint
-          </div></div>
           </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-debt" style="width:8%"></div></div>
+        </div>
 
         <!-- payment-service :8084 -->
         <div class="service-card" id="card-payment">
@@ -548,8 +552,9 @@
           </div>
           <div class="service-desc">
             Pagos Parciales · Resilience4j CB+Retry+Timeout
-          </div></div>
           </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-payment" style="width:8%"></div></div>
+        </div>
 
         <!-- fx-service :8085 -->
         <div class="service-card" id="card-fx">
@@ -563,8 +568,9 @@
           </div>
           <div class="service-desc">
             Tasa USD/DOP · @Cacheable 30min · exchangeratesapi
-          </div></div>
           </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-fx" style="width:8%"></div></div>
+        </div>
 
         <!-- notification-service :8086 -->
         <div class="service-card" id="card-notification">
@@ -580,8 +586,9 @@
           </div>
           <div class="service-desc">
             Email SendGrid/Mailgun · Scheduler · Outbox Pattern
-          </div></div>
           </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-notification" style="width:8%"></div></div>
+        </div>
 
         <!-- ai-risk-service :8087 -->
         <div class="service-card" id="card-ai">
@@ -595,8 +602,9 @@
           </div>
           <div class="service-desc">
             Groq API · llama3-8b · FIABLE/REVISIÓN/BLOQUEADO
-          </div></div>
           </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-ai" style="width:8%"></div></div>
+        </div>
       </div>
     </main>
 
