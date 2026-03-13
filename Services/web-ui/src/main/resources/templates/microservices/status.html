@@ -1068,20 +1068,8 @@
       ];
 
       async function checkService(svc) {
-        const start = Date.now();
-        try {
-          const res = await fetch(svc.url, {
-            signal: AbortSignal.timeout(4000),
-          });
-          const latency = Date.now() - start;
-          const data = await res.json().catch(() => ({}));
-          const isUp =
-            res.ok && (data.status === "UP" || data.status === undefined);
-          const isSlow = isUp && latency > 500;
-          return { status: isSlow ? "slow" : isUp ? "up" : "down", latency };
-        } catch {
-          return { status: "down", latency: null };
-        }
+        // No usado directamente — los checks los hace el backend
+        return { status: "down", latency: null };
       }
 
       function applyStatus(key, status, latency) {
@@ -1121,22 +1109,26 @@
           "Verificando servicios…";
         document.getElementById("summaryDot").className = "summary-dot";
 
-        const results = await Promise.all(SERVICES.map((s) => checkService(s)));
+        try {
+          const res = await fetch("/microservices/health");
+          const data = await res.json();
 
-        let upCount = 0;
-        results.forEach((r, i) => {
-          applyStatus(SERVICES[i].key, r.status, r.latency);
-          if (r.status === "up" || r.status === "slow") upCount++;
-        });
+          SERVICES.forEach((svc) => {
+            const r = data[svc.key];
+            if (r) applyStatus(svc.key, r.status, r.latency >= 0 ? r.latency : null);
+          });
 
-        const total = SERVICES.length;
-        const allUp = upCount === total;
-        const dot = document.getElementById("summaryDot");
-        const txt = document.getElementById("summaryText");
-
-        dot.className = "summary-dot" + (allUp ? "" : " warn");
-        txt.className = "summary-text" + (allUp ? "" : " warn");
-        txt.textContent = upCount + "/" + total + " servicios activos";
+          const upCount = data.upCount || 0;
+          const total = data.total || SERVICES.length;
+          const allUp = upCount === total;
+          const dot = document.getElementById("summaryDot");
+          const txt = document.getElementById("summaryText");
+          dot.className = "summary-dot" + (allUp ? "" : " warn");
+          txt.className = "summary-text" + (allUp ? "" : " warn");
+          txt.textContent = upCount + "/" + total + " servicios activos";
+        } catch (e) {
+          document.getElementById("summaryText").textContent = "Error al verificar servicios";
+        }
 
         btn.classList.remove("spinning");
         btn.disabled = false;
