@@ -58,7 +58,8 @@ public class GroqClient implements GroqAiAnalyzer {
 
         StringBuilder sb = new StringBuilder();
         sb.append("You are a credit risk analyst AI. Analyze the following payment history ")
-                .append("and return ONLY a valid JSON object with no extra text.\n\n");
+                .append("and return ONLY a valid JSON object with no extra text.\n\n")
+                .append("All recommendations must be written in Spanish.\n\n");
 
         sb.append("CLIENT ID: ").append(clientId).append("\n");
         sb.append("TOTAL PAYMENTS: ").append(paymentCount).append("\n");
@@ -97,7 +98,8 @@ public class GroqClient implements GroqAiAnalyzer {
                 "model", MODEL,
                 "messages", List.of(
                         Map.of("role", "system",
-                                "content", "You are a credit risk analyst. Always respond with valid JSON only."),
+                                "content",
+                                "You are a credit risk analyst. Always respond with valid JSON only. Write all recommendations in Spanish."),
                         Map.of("role", "user", "content", prompt)),
                 "temperature", 0.2,
                 "max_tokens", 512);
