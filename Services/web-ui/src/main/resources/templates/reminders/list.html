@@ -598,6 +598,10 @@
               <div class="legend-dot" style="background: #f87171"></div>
               Vencido / Urgente
             </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #fb923c"></div>
+              Deuda por vencer
+            </div>
           </div>
         </div>
 
@@ -660,7 +664,15 @@
               <span class="reminder-badge badge-pending">PENDING</span>
             </div>
 
-            <!-- Empty state -->
+            <!-- Panel deudas del día seleccionado (dinámico) -->
+            <div id="debtDayPanel" style="display:none;">
+              <div class="panel-card-header" id="debtDayTitle" style="border-top:1px solid var(--border);">
+                Selecciona un día
+              </div>
+              <div id="debtDayList"></div>
+            </div>
+
+          <!-- Empty state -->
             <div th:if="${#lists.isEmpty(reminders)}" class="empty-reminders">
               <svg
                 viewBox="0 0 24 24"
@@ -896,9 +908,10 @@
       </div>
     </div>
 
-    <!-- Datos de recordatorios para el calendario (inyectados desde Thymeleaf) -->
+    <!-- Datos para el calendario (inyectados desde Thymeleaf) -->
     <script th:inline="javascript">
       const REMINDERS_DATA = /*[[${remindersJson}]]*/ [];
+      const DEBTS_DATA = /*[[${debtsJson}]]*/ [];
     </script>
 
     <script>
@@ -926,11 +939,22 @@
       let currentYear = today.getFullYear();
       let currentMonth = today.getMonth(); // 0-based
 
-      // Construir set de fechas con recordatorio
+      // Construir map de fechas: recordatorios + deudas vencimiento
       const reminderDates = new Set();
+      const debtDates = new Map();
+
       if (Array.isArray(REMINDERS_DATA)) {
         REMINDERS_DATA.forEach((r) => {
           if (r.dueDate) reminderDates.add(r.dueDate.substring(0, 10));
+        });
+      }
+      if (Array.isArray(DEBTS_DATA)) {
+        DEBTS_DATA.forEach((d) => {
+          if (d.dueDate) {
+            const key = d.dueDate.substring(0, 10);
+            if (!debtDates.has(key)) debtDates.set(key, []);
+            debtDates.get(key).push(d);
+          }
         });
       }
 
@@ -969,6 +993,7 @@
 
           if (dateStr === todayStr) div.classList.add("today");
 
+          // Recordatorios (notification-service)
           if (reminderDates.has(dateStr)) {
             div.classList.add("has-reminder");
             const dot = document.createElement("div");
@@ -977,6 +1002,23 @@
             div.appendChild(dot);
             div.title = "Tiene recordatorio";
             div.onclick = () => verDia(dateStr);
+          }
+
+          // Vencimientos de deudas
+          if (debtDates.has(dateStr)) {
+            div.classList.add("has-reminder");
+            div.style.cursor = "pointer";
+            const debts = debtDates.get(dateStr);
+            const isPast = dateStr < todayStr;
+            // dot naranja o rojo si vencido
+            if (!reminderDates.has(dateStr)) {
+              const dot = document.createElement("div");
+              dot.className = "cal-dot" + (isPast ? " urgent" : "");
+              div.appendChild(dot);
+            }
+            const names = debts.map(d => d.description).join(", ");
+            div.title = (isPast ? "⚠️ VENCIDA: " : "📅 Vence: ") + names;
+            div.onclick = () => mostrarDeudas(dateStr, debts, isPast);
           }
 
           container.appendChild(div);
@@ -1024,6 +1066,40 @@
           currentMonth = m;
           renderCalendar(currentYear, currentMonth);
         }
+      }
+
+      // Mostrar deudas del día seleccionado en el panel derecho
+      function mostrarDeudas(dateStr, debts, isPast) {
+        document.querySelectorAll(".cal-day.selected").forEach(d => d.classList.remove("selected"));
+        event.currentTarget.classList.add("selected");
+
+        const panel = document.getElementById("debtDayPanel");
+        const title = document.getElementById("debtDayTitle");
+        const list  = document.getElementById("debtDayList");
+
+        const [y, m, d] = dateStr.split("-");
+        const MESES_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+        title.textContent = (isPast ? "⚠️ Vencidas - " : "📅 Vencen el ") + d + " " + MESES_SHORT[parseInt(m)-1] + " " + y;
+
+        list.innerHTML = "";
+        debts.forEach(debt => {
+          const item = document.createElement("div");
+          item.className = "reminder-item";
+          item.innerHTML = \`
+            <div class="reminder-date-box" style="background:\${isPast ? 'linear-gradient(135deg,#7f1d1d,#b91c1c)' : 'linear-gradient(135deg,#4C5E1A,#6a8422)'}">
+              <div class="reminder-date-day">\${d}</div>
+              <div class="reminder-date-mon">\${MESES_SHORT[parseInt(m)-1]}</div>
+            </div>
+            <div class="reminder-body">
+              <div class="reminder-name">\${debt.description || 'Sin descripción'}</div>
+              <div class="reminder-desc">Balance: \${debt.currentBalance || '0'} \${debt.currency || 'RD$'}</div>
+            </div>
+            <span class="reminder-badge \${isPast ? 'badge-urgent' : 'badge-upcoming'}">\${isPast ? 'VENCIDA' : 'PRÓXIMA'}</span>
+          \`;
+          list.appendChild(item);
+        });
+
+        panel.style.display = "block";
       }
 
       // Inicializar calendario al cargar
