@@ -117,7 +117,7 @@ public class RiskServiceImpl implements RiskService {
             List<PaymentDTO> payments = paymentClient.getPaymentsByDebt(debt.id()).getData();
             for (PaymentDTO payment : payments) {
                 history.add(new PaymentHistoryDTO(
-                        payment.id(),
+                        String.valueOf(payment.id()),
                         debt.id(),
                         debtorId,
                         payment.amount(),

@@ -57,25 +57,31 @@ class RiskServiceImplTest {
                 List.of("Monitorear al cliente", "Solicitar garantía"), "raw");
     }
 
+    private DebtClient.DebtListResponse debtList(DebtDTO... debts) {
+        return new DebtClient.DebtListResponse(List.of(debts));
+    }
+
+    private PaymentClient.PaymentListResponse paymentList(PaymentDTO... payments) {
+        return new PaymentClient.PaymentListResponse(List.of(payments));
+    }
+
     // ── Tests ─────────────────────────────────────────────────
 
     @Test
     @DisplayName("Sin mora → GOOD_CLIENT (reglas y IA coinciden)")
     void noLatePayments_bothAgree_goodClient() {
-        String debtorId = "1";
+        String clientId = "1";
         String debtId = "debt-1";
         LocalDate dueDate = LocalDate.of(2026, 3, 1);
 
-        when(debtClient.getDebtsByDebtor(debtorId))
-                .thenReturn(List.of(debt(debtId, debtorId, dueDate)));
-        when(paymentClient.getPaymentsByDebt(debtId))
-                .thenReturn(List.of(payment(debtId, dueDate))); // pagó en fecha
-        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
+        when(debtClient.getDebtsByDebtor(clientId)).thenReturn(debtList(debt(debtId, clientId, dueDate)));
+        when(paymentClient.getPaymentsByDebt(debtId)).thenReturn(paymentList(payment(debtId, dueDate)));
+        when(groqAiAnalyzer.analyze(anyString(), anyInt(), anyInt(), anyInt(), any()))
                 .thenReturn(groqResponse(RiskLevel.GOOD_CLIENT, 0.0));
-        when(repo.findByClientId(1L)).thenReturn(Optional.empty());
+        when(repo.findByClientId(clientId)).thenReturn(Optional.empty());
         when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        RiskResponse result = service.recalculate(1L);
+        RiskResponse result = service.recalculate(clientId);
 
         assertThat(result.riskLevel()).isEqualTo(RiskLevel.GOOD_CLIENT);
         assertThat(result.aiRiskLevel()).isEqualTo(RiskLevel.GOOD_CLIENT);
@@ -84,20 +90,18 @@ class RiskServiceImplTest {
     @Test
     @DisplayName("9 días de mora → LOW_RISK")
     void nineDaysLate_lowRisk() {
-        String debtorId = "2";
+        String clientId = "2";
         String debtId = "debt-2";
         LocalDate dueDate = LocalDate.of(2026, 3, 1);
 
-        when(debtClient.getDebtsByDebtor(debtorId))
-                .thenReturn(List.of(debt(debtId, debtorId, dueDate)));
-        when(paymentClient.getPaymentsByDebt(debtId))
-                .thenReturn(List.of(payment(debtId, dueDate.plusDays(9)))); // 9 días tarde
-        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
+        when(debtClient.getDebtsByDebtor(clientId)).thenReturn(debtList(debt(debtId, clientId, dueDate)));
+        when(paymentClient.getPaymentsByDebt(debtId)).thenReturn(paymentList(payment(debtId, dueDate.plusDays(9))));
+        when(groqAiAnalyzer.analyze(anyString(), anyInt(), anyInt(), anyInt(), any()))
                 .thenReturn(groqResponse(RiskLevel.LOW_RISK, 15.0));
-        when(repo.findByClientId(2L)).thenReturn(Optional.empty());
+        when(repo.findByClientId(clientId)).thenReturn(Optional.empty());
         when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        RiskResponse result = service.recalculate(2L);
+        RiskResponse result = service.recalculate(clientId);
 
         assertThat(result.riskLevel()).isEqualTo(RiskLevel.LOW_RISK);
         assertThat(result.totalDaysLate()).isEqualTo(9);
@@ -106,20 +110,18 @@ class RiskServiceImplTest {
     @Test
     @DisplayName("31 días de mora → HIGH_RISK")
     void thirtyOneDaysLate_highRisk() {
-        String debtorId = "3";
+        String clientId = "3";
         String debtId = "debt-3";
         LocalDate dueDate = LocalDate.of(2026, 3, 1);
 
-        when(debtClient.getDebtsByDebtor(debtorId))
-                .thenReturn(List.of(debt(debtId, debtorId, dueDate)));
-        when(paymentClient.getPaymentsByDebt(debtId))
-                .thenReturn(List.of(payment(debtId, dueDate.plusDays(31)))); // 31 días tarde
-        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
+        when(debtClient.getDebtsByDebtor(clientId)).thenReturn(debtList(debt(debtId, clientId, dueDate)));
+        when(paymentClient.getPaymentsByDebt(debtId)).thenReturn(paymentList(payment(debtId, dueDate.plusDays(31))));
+        when(groqAiAnalyzer.analyze(anyString(), anyInt(), anyInt(), anyInt(), any()))
                 .thenReturn(groqResponse(RiskLevel.HIGH_RISK, 75.0));
-        when(repo.findByClientId(3L)).thenReturn(Optional.empty());
+        when(repo.findByClientId(clientId)).thenReturn(Optional.empty());
         when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        RiskResponse result = service.recalculate(3L);
+        RiskResponse result = service.recalculate(clientId);
 
         assertThat(result.riskLevel()).isEqualTo(RiskLevel.HIGH_RISK);
     }
@@ -127,20 +129,18 @@ class RiskServiceImplTest {
     @Test
     @DisplayName("Groq no disponible → solo reglas (fallback)")
     void groqUnavailable_fallbackToRules() {
-        String debtorId = "4";
+        String clientId = "4";
         String debtId = "debt-4";
         LocalDate dueDate = LocalDate.of(2026, 3, 1);
 
-        when(debtClient.getDebtsByDebtor(debtorId))
-                .thenReturn(List.of(debt(debtId, debtorId, dueDate)));
-        when(paymentClient.getPaymentsByDebt(debtId))
-                .thenReturn(List.of(payment(debtId, dueDate.plusDays(9))));
-        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
-                .thenReturn(null); // Groq caído
-        when(repo.findByClientId(4L)).thenReturn(Optional.empty());
+        when(debtClient.getDebtsByDebtor(clientId)).thenReturn(debtList(debt(debtId, clientId, dueDate)));
+        when(paymentClient.getPaymentsByDebt(debtId)).thenReturn(paymentList(payment(debtId, dueDate.plusDays(9))));
+        when(groqAiAnalyzer.analyze(anyString(), anyInt(), anyInt(), anyInt(), any()))
+                .thenReturn(null);
+        when(repo.findByClientId(clientId)).thenReturn(Optional.empty());
         when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        RiskResponse result = service.recalculate(4L);
+        RiskResponse result = service.recalculate(clientId);
 
         assertThat(result.riskLevel()).isEqualTo(RiskLevel.LOW_RISK);
         assertThat(result.aiRiskLevel()).isNull();
@@ -150,20 +150,18 @@ class RiskServiceImplTest {
     @Test
     @DisplayName("Reglas y Groq difieren → se toma el mayor riesgo")
     void rulesAndGroqDisagree_takesHigherRisk() {
-        String debtorId = "5";
+        String clientId = "5";
         String debtId = "debt-5";
         LocalDate dueDate = LocalDate.of(2026, 3, 1);
 
-        when(debtClient.getDebtsByDebtor(debtorId))
-                .thenReturn(List.of(debt(debtId, debtorId, dueDate)));
-        when(paymentClient.getPaymentsByDebt(debtId))
-                .thenReturn(List.of(payment(debtId, dueDate.plusDays(9)))); // reglas → LOW_RISK
-        when(groqAiAnalyzer.analyze(anyLong(), anyInt(), anyInt(), anyInt(), any()))
-                .thenReturn(groqResponse(RiskLevel.HIGH_RISK, 80.0)); // IA → HIGH_RISK
-        when(repo.findByClientId(5L)).thenReturn(Optional.empty());
+        when(debtClient.getDebtsByDebtor(clientId)).thenReturn(debtList(debt(debtId, clientId, dueDate)));
+        when(paymentClient.getPaymentsByDebt(debtId)).thenReturn(paymentList(payment(debtId, dueDate.plusDays(9))));
+        when(groqAiAnalyzer.analyze(anyString(), anyInt(), anyInt(), anyInt(), any()))
+                .thenReturn(groqResponse(RiskLevel.HIGH_RISK, 80.0));
+        when(repo.findByClientId(clientId)).thenReturn(Optional.empty());
         when(repo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        RiskResponse result = service.recalculate(5L);
+        RiskResponse result = service.recalculate(clientId);
 
         assertThat(result.riskLevel()).isEqualTo(RiskLevel.HIGH_RISK);
     }
