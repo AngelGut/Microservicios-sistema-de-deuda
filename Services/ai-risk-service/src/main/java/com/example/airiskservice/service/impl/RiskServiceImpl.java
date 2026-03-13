@@ -45,8 +45,7 @@ public class RiskServiceImpl implements RiskService {
     @Override
     @Cacheable(value = "clientRisk", key = "#clientId")
     public RiskResponse getRiskByClient(String clientId) {
-        Long id = Long.parseLong(clientId);
-        return clientRiskRepository.findByClientId(id)
+        return clientRiskRepository.findByClientId(clientId)
                 .map(RiskResponse::from)
                 .orElseGet(() -> {
                     log.info("Sin perfil de riesgo para clientId={}, calculando...", clientId);
@@ -66,7 +65,6 @@ public class RiskServiceImpl implements RiskService {
     @Transactional
     @CacheEvict(value = "clientRisk", key = "#clientId")
     public RiskResponse recalculate(String clientId) {
-        Long id = Long.parseLong(clientId);
         log.info("Iniciando doble análisis de riesgo para clientId={}", clientId);
 
         // PASO 1 — Construir historial combinando debt-service + payment-service
@@ -80,7 +78,7 @@ public class RiskServiceImpl implements RiskService {
 
         // PASO 3 — Análisis con Groq AI
         GroqRiskResponse aiResult = groqAiAnalyzer.analyze(
-                id,
+                clientId,
                 rulesResult.totalDaysLate(),
                 rulesResult.latePaymentCount(),
                 rulesResult.paymentCount(),
@@ -92,8 +90,8 @@ public class RiskServiceImpl implements RiskService {
                 clientId, finalResult.riskLevel(), finalResult.riskScore(), aiResult != null);
 
         // PASO 5 — Persistir
-        ClientRisk entity = clientRiskRepository.findByClientId(id)
-                .orElse(new ClientRisk(id));
+        ClientRisk entity = clientRiskRepository.findByClientId(clientId)
+                .orElse(new ClientRisk(clientId));
         applyResult(entity, finalResult);
         clientRiskRepository.save(entity);
 
@@ -105,33 +103,27 @@ public class RiskServiceImpl implements RiskService {
     public void recalculateAll() {
         log.info("Recálculo masivo de riesgo iniciado...");
         clientRiskRepository.findAll()
-                .forEach(cr -> recalculate(cr.getClientId().toString()));
+                .forEach(cr -> recalculate(cr.getClientId()));
         log.info("Recálculo masivo completado.");
     }
 
     // ── Construcción del historial ───────────────────────────
 
-    /**
-     * Combina deudas (dueDate) con pagos (paymentDate) para construir
-     * el historial completo que necesita el análisis de riesgo.
-     * El debtorId en este sistema es el mismo que clientId en formato String.
-     */
     private List<PaymentHistoryDTO> buildPaymentHistory(String debtorId) {
-        List<DebtDTO> debts = debtClient.getDebtsByDebtor(debtorId).data();
+        List<DebtDTO> debts = debtClient.getDebtsByDebtor(debtorId).getData();
         List<PaymentHistoryDTO> history = new ArrayList<>();
 
         for (DebtDTO debt : debts) {
-            List<PaymentDTO> payments = paymentClient.getPaymentsByDebt(debt.id()).data();
+            List<PaymentDTO> payments = paymentClient.getPaymentsByDebt(debt.id()).getData();
             for (PaymentDTO payment : payments) {
                 history.add(new PaymentHistoryDTO(
-                        String.valueOf(payment.id()),
+                        payment.id(),
                         debt.id(),
                         debtorId,
                         payment.amount(),
                         payment.paymentDate(),
                         debt.dueDate(),
-                        payment.note()
-                ));
+                        payment.note()));
             }
         }
 
