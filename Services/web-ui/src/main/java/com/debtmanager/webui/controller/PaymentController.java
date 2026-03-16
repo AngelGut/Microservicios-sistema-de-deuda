@@ -2,6 +2,7 @@ package com.debtmanager.webui.controller;
 
 import com.debtmanager.webui.dto.request.PaymentRequest;
 import com.debtmanager.webui.dto.response.DebtResponse;
+import com.debtmanager.webui.dto.response.PaymentResponse;
 import com.debtmanager.webui.service.DebtService;
 import com.debtmanager.webui.service.PaymentService;
 import jakarta.servlet.http.HttpSession;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/payments")
@@ -31,9 +34,20 @@ public class PaymentController {
     public String list(HttpSession session, Model model) {
         String token = (String) session.getAttribute("jwt");
 
+        // Cargar todas las deudas para enriquecer los pagos visualmente
+        // (sin afectar lógica — solo lectura para display)
+        Map<String, DebtResponse> debtMap = new LinkedHashMap<>();
+        try {
+            debtService.getAll(token).forEach(d -> debtMap.put(d.id(), d));
+        } catch (Exception e) {
+            // Si falla, el mapa queda vacío y se muestran los valores por defecto
+        }
+        model.addAttribute("debtMap", debtMap);
+
         // Historial de pagos
         try {
-            model.addAttribute("payments", paymentService.getAll(token));
+            List<PaymentResponse> payments = paymentService.getAll(token);
+            model.addAttribute("payments", payments);
         } catch (Exception e) {
             model.addAttribute("payments", new ArrayList<>());
             model.addAttribute("error",
