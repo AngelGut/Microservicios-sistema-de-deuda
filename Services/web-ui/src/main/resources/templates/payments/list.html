@@ -1059,6 +1059,22 @@
         .addEventListener("click", function (e) {
           if (e.target === this) cerrarModalPago();
         });
+
+      // Solo números en el campo monto del pago
+      document
+        .getElementById("pagoMonto")
+        .addEventListener("keypress", function (e) {
+          if (!/[0-9.]/.test(e.key)) e.preventDefault();
+        });
+      document
+        .getElementById("pagoMonto")
+        .addEventListener("paste", function (e) {
+          e.preventDefault();
+          var pasted = (e.clipboardData || window.clipboardData).getData(
+            "text",
+          );
+          this.value = pasted.replace(/[^0-9.]/g, "");
+        });
     </script>
   </body>
 </html>
