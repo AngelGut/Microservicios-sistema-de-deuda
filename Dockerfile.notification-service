@@ -1,8 +1,7 @@
 FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /build
 COPY pom.xml .
-COPY Services/common-lib Services/common-lib/
-COPY Services/notification-service Services/notification-service/
+COPY Services Services/
 RUN mvn -pl Services/notification-service -am clean package -DskipTests
 
 FROM eclipse-temurin:17-jre
@@ -11,7 +10,7 @@ RUN mkdir -p /app/data && chmod 777 /app/data
 COPY --from=build /build/Services/notification-service/target/*.jar app.jar
 EXPOSE 8085
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8085/actuator/health || exit 1
+  CMD curl -f http://localhost:8085/actuator/health || exit 1
 CMD ["sh", "-c", "java \
   -Dserver.port=${PORT:-8085} \
   -Dspring.datasource.url=${DATASOURCE_URL:-jdbc:sqlite:./data/notification.db} \
