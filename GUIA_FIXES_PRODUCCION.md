@@ -2,11 +2,12 @@
 
 ## 📋 Resumen Ejecutivo
 
-**Problema Principal**: El sistema estaba en producción (Railway) con 3 bugs críticos que impedían el funcionamiento correcto:
+**Problema Principal**: El sistema estaba en producción (Railway) con 2 bugs críticos que impedían el funcionamiento correcto:
 
 1. **web-ui no responde** — puerto hardcodeado
 2. **payment-service rechaza todos los tokens (401)** — JWT secret diferente
-3. **user-service rechaza todos los tokens (401)** — JWT secret diferente
+
+**Nota**: `user-service` fue **eliminado**. La gestión de usuarios quedó centralizada en `auth-service`.
 
 **Solución**: Centralizar el JWT_SECRET en todas las instancias y usar variables de entorno de Railway.
 
@@ -85,39 +86,6 @@ JWT_SECRET = FdQcQwFpqKWUkIIDyYEJJDOfDb13RpjEzdG13G1sWvmDhBIJWQiC47IgR5p1YPzYXIR
 
 ---
 
-## 🔴 PROBLEMA 3: user-service rechaza tokens con 401
-
-### Root Cause
-
-```properties
-# ANTES (INCORRECTO)
-jwt.secret=QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoxMjM0NTY3ODkwQUJDREVGR0hJSktMTU5PUA==
-```
-
-Mismo problema que payment-service:
-
-- Valor hardcodeado diferente al de auth-service
-- JwtService falla al validar tokens
-- 401 en endpoints protegidos
-
-### Fix
-
-**Archivo**: `Services/user-service/src/main/resources/application.properties`
-
-```properties
-# ANTES
-jwt.secret=QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoxMjM0NTY3ODkwQUJDREVGR0hJSktMTU5PUA==
-
-# DESPUÉS
-jwt.secret=${JWT_SECRET}
-```
-
-**Cambios de código**: NINGUNO. El `JwtService.java` ya lee `${jwt.secret}` correctamente.
-
-**Por qué funciona**: Mismo mecanismo que payment-service.
-
----
-
 ## ✅ ARQUITECTURA DE SEGURIDAD JWT DESPUÉS DE LOS FIXES
 
 ```
@@ -139,19 +107,19 @@ jwt.secret=${JWT_SECRET}
                         ▲       ▲       ▲
                     FIRMA   FIRMA   FIRMA
                         │       │       │
-        ┌───────────────┴───────┴───────┴──────────────┐
+        ┌──────────────────────────────────────────────┐
         │   Tokens signed con JWT_SECRET               │
-        └───────────────┬───────┬───────┬──────────────┘
-                        │       │       │
-            VERIFICA   VERIFICA   VERIFICA
-                        │       │       │
-        ┌───────────────▼────┬──▼───────▼──────────┐
-        │ payment-service    │ user-service        │
-        │ Lee: app.jwt.secret│ Lee: jwt.secret     │
-        │     = ${JWT_SECRET}│      = ${JWT_SECRET}│
-        │ JwtAuthFilter      │ JwtService          │
-        │ verifica tokens ✓  │ verifica tokens ✓   │
-        └────────────────────┴─────────────────────┘
+        └───────────────────────┬──────────────────────┘
+                                │
+                            VERIFICA
+                                │
+        ┌───────────────────────▼──────────────────────┐
+        │ payment-service                               │
+        │ Lee: app.jwt.secret = ${JWT_SECRET}           │
+        │ JwtAuthFilter verifica tokens ✓               │
+        └───────────────────────────────────────────────┘
+
+Nota: user-service eliminado. Gestión de usuarios → auth-service (/api/v1/auth/users/**).
 ```
 
 ---
@@ -174,15 +142,6 @@ jwt.secret=${JWT_SECRET}
 - [ ] Verificar: JwtAuthFilter.java no necesita cambios
 - [ ] Hacer commit
 
-### Para user-service
-
-- [ ] Editar: `Services/user-service/src/main/resources/application.properties`
-- [ ] Cambiar línea con `jwt.secret`
-- [ ] Remover valor hardcodeado
-- [ ] Resultado: `jwt.secret=${JWT_SECRET}`
-- [ ] Verificar: JwtService.java no necesita cambios
-- [ ] Hacer commit
-
 ### Para web-ui
 
 - [ ] Editar: `Services/web-ui/src/main/resources/application.properties`
@@ -196,16 +155,15 @@ jwt.secret=${JWT_SECRET}
 - [ ] Configurar en servicios:
   - [ ] auth-service
   - [ ] payment-service
-  - [ ] user-service
   - [ ] (web-ui no necesita, solo usa ${PORT})
+  - [ ] user-service: ELIMINADO
 - [ ] Triggerear redeploy en cada servicio
 
 ### Verificación
 
 - [ ] `web-ui`: Status = ACTIVE, responde en puerto dinámico
 - [ ] `payment-service`: Status = ACTIVE, tokens validados ✓
-- [ ] `user-service`: Status = ACTIVE, tokens validados ✓
-- [ ] `auth-service`: Status = ACTIVE, genera tokens ✓
+- [ ] `auth-service`: Status = ACTIVE, genera tokens y gestiona usuarios ✓
 
 ---
 
@@ -239,14 +197,14 @@ curl -X GET http://api-gateway:8080/api/v1/payments \
 # Respuesta esperada: 200 OK (NO 401)
 ```
 
-### Test: Validar que user-service acepta tokens
+### Test: Listar usuarios del sistema (ahora en auth-service)
 
 ```bash
-curl -X GET http://api-gateway:8080/api/v1/users \
+curl -X GET http://api-gateway:8080/api/v1/auth/users \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   -H "Content-Type: application/json"
 
-# Respuesta esperada: 200 OK (NO 401)
+# Respuesta esperada: 200 OK con lista de usuarios
 ```
 
 ---
@@ -310,10 +268,10 @@ El problema NO está en la UI, está en la **configuración de microservicios y 
 Después de estos fixes:
 
 ```
-web-ui         → ✅ Responde en puerto dinámico
+web-ui          → ✅ Responde en puerto dinámico
 payment-service → ✅ Acepta tokens válidos
-user-service   → ✅ Acepta tokens válidos
-auth-service   → ✅ Genera tokens correctos (sin cambios)
+auth-service    → ✅ Genera tokens + gestiona usuarios (/api/v1/auth/users/**)
+user-service    → ❌ Eliminado (responsabilidad absorbida por auth-service)
 ```
 
 **Sistema sincronizado y funcional en Railway** 🚀

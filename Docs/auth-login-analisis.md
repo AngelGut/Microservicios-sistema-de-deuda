@@ -1,50 +1,71 @@
-# Análisis de solución propuesta: login en `user-service`
+# Decisión arquitectónica: gestión de usuarios centralizada en `auth-service`
 
-## Veredicto corto
+## Decisión
 
-La solución **sí conviene como parche rápido** para destrabar autenticación con usuarios registrados en `user-service`, pero **no conviene como diseño final** si se quiere arquitectura limpia de microservicios.
+`user-service` fue **eliminado** del sistema.
 
-## Hallazgos en el estado actual del repo
+Toda la gestión de usuarios del sistema (credenciales, roles, estado) queda centralizada en `auth-service`.
 
-1. `auth-service` ya expone `POST /api/v1/auth/login` y `POST /api/v1/auth/validate`, con su propia tabla de usuarios.
-2. `auth-service` inicializa un admin por defecto (`admin@debtmanager.com`) al arrancar.
-3. En `web-ui`, `AuthClient` hace login contra `/api/v1/auth/login` y registro contra `/api/v1/auth/register`.
-4. `auth-service` no tiene endpoint `/register`.
-5. En `api-gateway` no existe ruta hacia `user-service`; solo hay ruta `/api/v1/auth/**` hacia `auth-service`.
-6. En `user-service`, el filtro JWT se aplica a `/api/*` y rechaza requests sin token (401), lo cual puede bloquear login/registro si no se excluyen rutas públicas.
+---
 
-## Qué está bien de su propuesta
+## Contexto previo
 
-- Mover login al `user-service` resuelve el desalineamiento entre “dónde se crean usuarios” y “dónde se validan credenciales”.
-- `findByEmail` + `passwordEncoder.matches` + emisión JWT en login es patrón válido.
-- Mantener `auth-service` solo para validación puede funcionar si todos los servicios comparten secreto y formato de claims.
+El análisis original evaluaba si era conveniente mover el login a `user-service`. La conclusión fue que mantener dos servicios gestionando usuarios en paralelo generaba duplicación de fuentes de verdad y confusión de responsabilidades.
 
-## Riesgos / cosas a corregir antes de considerarlo estable
+La decisión final fue la opuesta: **eliminar `user-service` y absorber su responsabilidad en `auth-service`**.
 
-1. **Confusión de flujo en el texto**: Registro y Login están invertidos.
-   - Correcto debería ser:
-     - Registro → `POST /api/users`
-     - Login → `POST /api/users/login`
-2. **Gateway**: si `web-ui` pasa por gateway, deben enrutar `/api/users/**` o una ruta versionada equivalente hacia `user-service`.
-3. **Filtro JWT en user-service**: deben dejar públicas al menos:
-   - `POST /api/users` (registro)
-   - `POST /api/users/login` (login)
-4. **Contrato de token**: si `auth-service` valida tokens emitidos por `user-service`, ambos deben compartir:
-   - mismo `jwt.secret`
-   - mismo algoritmo
-   - expectativas de claims (`role` vs `roles`, `sub`, expiración)
-5. **Manejo de errores**: usar excepciones controladas (4xx) en vez de `RuntimeException` genérica para credenciales inválidas / usuario inactivo.
+---
 
-## Recomendación práctica
+## Arquitectura actual
 
-- **Sí implementar su cambio** para avanzar ahora, pero con estos mínimos:
-  1. Exponer login en `user-service`.
-  2. Ajustar `JwtFilter` para whitelist de login/registro.
-  3. Ajustar `api-gateway` y `web-ui` al nuevo endpoint.
-  4. Corregir flujo documentado (registro/login).
-  5. Acordar contrato de JWT único entre `user-service` y `auth-service`.
+`auth-service` es el único servicio que:
 
-- **A mediano plazo** definir una arquitectura única:
-  - Opción A: `auth-service` autentica y emite tokens (y consulta user-service/DB compartida).
-  - Opción B: `user-service` autentica y emite, `auth-service` solo introspección/validación.
-  - Evitar que ambos gestionen usuarios de forma paralela para no duplicar fuentes de verdad.
+- Autentifica usuarios (`POST /api/v1/auth/login`)
+- Valida tokens (`POST /api/v1/auth/validate`)
+- Gestiona usuarios del sistema (`/api/v1/auth/users/**`)
+
+### Endpoints de gestión de usuarios (solo ADMIN)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/v1/auth/users` | Listar usuarios |
+| POST | `/api/v1/auth/users` | Crear usuario |
+| GET | `/api/v1/auth/users/{id}` | Obtener usuario |
+| PUT | `/api/v1/auth/users/{id}` | Actualizar (password, role, enabled) |
+| DELETE | `/api/v1/auth/users/{id}` | Desactivar usuario (soft delete) |
+
+### Endpoints públicos
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/v1/auth/login` | Login, devuelve JWT |
+| POST | `/api/v1/auth/validate` | Validar token |
+
+---
+
+## Gateway
+
+No se requirieron cambios en `api-gateway`. La ruta `/api/v1/auth/**` ya apuntaba a `auth-service`.
+
+---
+
+## Modelo de datos (tabla `users` en auth-service)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | UUID | Identificador único |
+| email | TEXT | Email único |
+| password | TEXT | Hash bcrypt |
+| role | TEXT | ADMIN / USER |
+| enabled | BOOLEAN | Soft delete flag |
+| createdAt | TIMESTAMP | Fecha de creación |
+
+---
+
+## Admin por defecto
+
+Al arrancar `auth-service`, `DataInitializer` crea el admin si no existe:
+
+- Email: `admin@tejada.com`
+- Password: `Admin2026!`
+- Role: `ADMIN`

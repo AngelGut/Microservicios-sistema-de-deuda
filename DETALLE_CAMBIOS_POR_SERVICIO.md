@@ -158,187 +158,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 ---
 
-## 2️⃣ USER-SERVICE
-
-### Archivo modificado
-**Path**: `Services/user-service/src/main/resources/application.properties`
-
-### Cambio específico (Línea 28)
-
-#### ANTES:
-```properties
-# JWT (misma clave que el auth-service)
-jwt.secret=QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoxMjM0NTY3ODkwQUJDREVGR0hJSktMTU5PUA==
-jwt.expiration-ms=3600000
-```
-
-#### DESPUÉS:
-```properties
-# JWT (misma clave que el auth-service)
-jwt.secret=${JWT_SECRET}
-jwt.expiration-ms=3600000
-```
-
-### Análisis técnico del cambio
-
-**¿Qué cambió?**
-- Removido el valor hardcodeado: `QUJDREVGR0hJSktMTU5PU...`
-- Ahora REQUIERE que la variable `JWT_SECRET` esté en Railway
-
-**¿Cómo funciona user-service internamente?**
-
-```
-application.properties (AHORA):
-  jwt.secret=${JWT_SECRET}
-     ↓
-Spring resuelve: JWT_SECRET desde variables de entorno
-     ↓
-JwtService.java (línea ~10):
-  @Component
-  public class JwtService {
-    @Value("${jwt.secret}")
-    private String secret;  // Ahora contiene: FdQcQwFpqKWUkIIDyYEJJ...
-
-    private Key getSigningKey() {
-      byte[] keyBytes = Base64.getDecoder().decode(secret);
-      return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public boolean isTokenValid(String token) {
-      try {
-        extractClaims(token);
-        return true;
-      } catch (Exception e) {
-        return false;
-      }
-    }
-  }
-     ↓
-JwtFilter.java (que llama JwtService):
-  String token = authHeader.substring(7);
-  if (!jwtService.isTokenValid(token)) {
-    response.setStatus(401);
-    return;  // ← 401 UNAUTHORIZED
-  }
-```
-
-**El problema (ANTES)**:
-```
-auth-service genera token:
-  secret = FdQcQwFpqKWUkIIDyYEJJDOfDb13RpjEzdG13G1sWvmDh... (desde JWT_SECRET)
-  token = HMAC-SHA256(data, secret)
-
-user-service intenta validar:
-  secret = QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoxMjM0N... (hardcodeado)
-
-  Llama: Jwts.parser().verifyWith(getSigningKey()).build()
-         .parseSignedClaims(token)
-
-  Intenta verificar firma con secret diferente → JwtException → false
-  → JwtFilter devuelve 401
-```
-
-**La solución (DESPUÉS)**:
-```
-user-service configuration:
-  jwt.secret=${JWT_SECRET}  ← Lee de Railway
-
-En Railway (configurado):
-  JWT_SECRET = FdQcQwFpqKWUkIIDyYEJJDOfDb13RpjEzdG13G1sWvmDh...
-
-JwtService al iniciar:
-  secret = FdQcQwFpqKWUkIIDyYEJJDOfDb13RpjEzdG13G1sWvmDh... (desde Railway)
-
-JwtFilter cuando verifica:
-  Llama: jwtService.isTokenValid(token)
-  JwtService parsea con secret CORRECTO → Jwts.parser OK ✓
-  → JwtFilter devuelve 200 OK
-```
-
-### Archivos Java que NO requirieron cambios
-
-**JwtService.java** (`Services/user-service/src/main/java/com/example/userservice/security/JwtService.java`):
-- Ya estaba implementado correctamente
-- Lee `${jwt.secret}` automáticamente desde properties
-- No necesita cambios de código
-
-```java
-@Component
-public class JwtService {
-
-    @Value("${jwt.secret}")
-    private String secret;  // Ahora es: FdQcQwFpqKWUkIIDyYEJJ... (desde Railway)
-
-    private Key getSigningKey() {
-        byte[] keyBytes = Base64.getDecoder().decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public Claims extractClaims(String token) {
-        return Jwts.parser()
-                .verifyWith((javax.crypto.SecretKey) getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
-
-    public boolean isTokenValid(String token) {
-        try {
-            extractClaims(token);  // Si secret es correcto → OK
-            return true;
-        } catch (Exception e) {  // Si secret es diferente → Exception → false
-            return false;
-        }
-    }
-}
-```
-
-**JwtFilter.java** (`Services/user-service/src/main/java/com/example/userservice/security/JwtFilter.java`):
-- Ya estaba implementado correctamente
-- Llama a JwtService.isTokenValid(token)
-- No necesita cambios de código
-
-```java
-@Component
-@RequiredArgsConstructor
-public class JwtFilter extends OncePerRequestFilter {
-
-    private final JwtService jwtService;
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
-
-        String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\":\"Token requerido\"}");
-            return;
-        }
-
-        String token = authHeader.substring(7);
-
-        // AQUÍ es donde valida el token con el secret correcto
-        if (!jwtService.isTokenValid(token)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\":\"Token inválido\"}");
-            return;  // ← 401 (ANTES de este fix)
-        }
-
-        try {
-            filterChain.doFilter(request, response);  // ← 200 OK (DESPUÉS de este fix)
-        } finally {
-            TraceIdUtil.clear();
-        }
-    }
-}
-```
-
----
-
-## 3️⃣ AUTH-SERVICE
+## 2️⃣ AUTH-SERVICE
 
 ### ✅ SIN CAMBIOS
 
@@ -482,13 +302,11 @@ Devuelve LoginResponse con token + metadata
 | Aspecto | ANTES (Broken) | DESPUÉS (Fixed) |
 |--------|---|---|
 | **payment-service secret** | `216/26Bhnb8aGxAun...` (hardcodeado) | `${JWT_SECRET}` (de Railway) |
-| **user-service secret** | `QUJDREVGR0hJSktM...` (hardcodeado) | `${JWT_SECRET}` (de Railway) |
 | **auth-service secret** | `${JWT_SECRET}` ✓ | `${JWT_SECRET}` ✓ |
 | **JWT verificación en payment-service** | ❌ Falla (secret diferente) | ✅ OK (secret igual) |
-| **JWT verificación en user-service** | ❌ Falla (secret diferente) | ✅ OK (secret igual) |
 | **Endpoints /payments** | 401 Unauthorized | 200 OK |
-| **Endpoints /users** | 401 Unauthorized | 200 OK |
 | **Seguridad** | ⚠️ Hardcodeado en git | ✅ Variables de entorno |
+| **user-service** | Servicio independiente | ❌ Eliminado — absorbido por auth-service |
 
 ---
 
@@ -518,16 +336,11 @@ Devuelve LoginResponse con token + metadata
    - Claims extraídos: { sub: "user-id", role: "ADMIN", email: "..." }
    - Petición autorizada → 200 OK
 
-6. Usuario usa token en user-service:
-   GET http://api-gateway:8080/api/v1/users
+6. Gestión de usuarios del sistema vía auth-service:
+   GET http://api-gateway:8080/api/v1/auth/users
    Header: Authorization: Bearer eyJhbGciOiJIUzI1N...
 
-7. API Gateway enruta a user-service (8087):
-   - JwtFilter intercepta petición
-   - Llama: jwtService.isTokenValid(token)
-   - JwtService lee secret: FdQcQwFpqKWUkIIDyYEJJ... (desde JWT_SECRET en Railway)
-   - Parsea y verifica: Jwts.parser().verifyWith(secret).parseSignedClaims(token) ✓
-   - Petición autorizada → 200 OK
+   API Gateway enruta a auth-service (8081) → 200 OK
 ```
 
 ---
@@ -537,9 +350,9 @@ Devuelve LoginResponse con token + metadata
 | Servicio | Archivo | Cambio | Linea | Justificación |
 |----------|---------|--------|-------|---|
 | **payment-service** | application.properties | Remover default hardcodeado | 24 | Usar secret de Railway |
-| **user-service** | application.properties | Remover valor hardcodeado | 28 | Usar secret de Railway |
 | **auth-service** | - | ✅ SIN CAMBIOS | - | Ya estaba correcto |
+| **user-service** | - | ❌ Eliminado | - | Absorbido por auth-service |
 
 **Archivos Java**: NINGUNO requirió cambios (ya estaban implementados correctamente)
 
-**Configuración Railway**: Agregar variable `JWT_SECRET` a los 3 servicios
+**Configuración Railway**: Agregar variable `JWT_SECRET` a auth-service y payment-service

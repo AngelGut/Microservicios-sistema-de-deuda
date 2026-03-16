@@ -64,7 +64,8 @@ Ejemplo de payload:
 Tiempo estándar de expiración para los access tokens:
 
 ```
-30 minutos
+1 hora (3,600,000 ms)
+Propiedad: jwt.expiration-ms=3600000
 ```
 
 ---
