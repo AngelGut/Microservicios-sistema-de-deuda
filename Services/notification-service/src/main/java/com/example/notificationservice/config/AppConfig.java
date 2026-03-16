@@ -29,11 +29,11 @@ public class AppConfig {
      * @param builder builder provisto por Spring Boot con auto-configuración
      * @return instancia de RestTemplate lista para inyectar
      */
-    @Bean
+   @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder
-                .setConnectTimeout(java.time.Duration.ofSeconds(10))
-                .setReadTimeout(java.time.Duration.ofSeconds(10))
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(5))
                 .build();
     }
 }
