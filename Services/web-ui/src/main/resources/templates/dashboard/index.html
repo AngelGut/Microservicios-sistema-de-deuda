@@ -1158,9 +1158,19 @@
           labels: ["Activas", "Pagadas"],
           datasets: [
             {
-              data: [cartActivas || 1, cartPagadas],
-              backgroundColor: ["#4C5E1A", "#29406C"],
-              borderColor: ["#6a8422", "#3a5490"],
+              // ✅ FIX: si no hay datos muestra gris neutro en lugar de forzar 1
+              data:
+                cartActivas === 0 && cartPagadas === 0
+                  ? [1]
+                  : [cartActivas, cartPagadas],
+              backgroundColor:
+                cartActivas === 0 && cartPagadas === 0
+                  ? ["rgba(255,255,255,0.08)"]
+                  : ["#4C5E1A", "#29406C"],
+              borderColor:
+                cartActivas === 0 && cartPagadas === 0
+                  ? ["rgba(255,255,255,0.08)"]
+                  : ["#6a8422", "#3a5490"],
               borderWidth: 2,
               hoverOffset: 6,
             },
@@ -1240,7 +1250,6 @@
         });
       /*]]>*/
     </script>
-
     <script>
       // ── Modal ──────────────────────────────────────────────────
       function abrirModal() {
