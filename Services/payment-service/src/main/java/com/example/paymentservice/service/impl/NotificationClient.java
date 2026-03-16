@@ -3,8 +3,17 @@ package com.example.paymentservice.service.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.example.paymentservice.dto.response.DebtResponse;
 import com.example.paymentservice.dto.response.PaymentResponse;
@@ -50,9 +59,22 @@ public class NotificationClient {
             body.put("currency", debt.currency());
             body.put("paymentDate", payment.paymentDate().toString());
 
+            // Propagar el JWT del request actual
+            String token = "";
+            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs != null) {
+                token = attrs.getRequest().getHeader("Authorization");
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", token != null ? token : "");
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
             restTemplate.postForEntity(
                     notificationServiceUrl + "/api/v1/notifications/payment-confirmation",
-                    body,
+                    entity,
                     Void.class);
 
             log.info("Notificación enviada para deuda {}", payment.debtId());
