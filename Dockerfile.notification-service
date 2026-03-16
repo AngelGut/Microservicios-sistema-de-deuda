@@ -10,20 +10,5 @@ RUN mkdir -p /app/data && chmod 777 /app/data
 COPY --from=build /build/Services/notification-service/target/*.jar app.jar
 EXPOSE 8085
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8085/actuator/health || exit 1
-CMD ["sh", "-c", "java \
-  -Dserver.port=${PORT:-8085} \
-  -Dspring.datasource.url=${DATASOURCE_URL:-jdbc:sqlite:./data/notification.db} \
-  -Dapp.jwt.secret=${JWT_SECRET:-dev-secret-key} \
-  -Dapp.debt-service.base-url=${DEBT_SERVICE_URL:-http://debt-service:8083} \
-  -Dapp.debtor-service.base-url=${DEBTOR_SERVICE_URL:-http://debtor-service:8086} \
-  -Dspring.mail.host=${MAIL_HOST:-smtp.gmail.com} \
-  -Dspring.mail.port=${MAIL_PORT:-587} \
-  -Dspring.mail.username=${MAIL_USERNAME:-} \
-  -Dspring.mail.password=${MAIL_PASSWORD:-} \
-  -Dapp.mail.from=${MAIL_FROM:-Sistema de Deudas} \
-  -Dspring.profiles.active=${SPRING_PROFILE:-default} \
-  -XX:+UseG1GC \
-  -XX:MaxRAMPercentage=75.0 \
-  -Dfile.encoding=UTF-8 \
-  -jar /app/app.jar"]
+  CMD curl -f http://localhost:${PORT:-8085}/actuator/health || exit 1
+ENTRYPOINT ["java", "-XX:+UseG1GC", "-XX:MaxRAMPercentage=75.0", "-Dfile.encoding=UTF-8", "-jar", "/app/app.jar"]
