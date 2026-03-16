@@ -2,7 +2,7 @@
   --green: #4c5e1a;
   --green-light: #6a8422;
   --green-glow: rgba(76, 94, 26, 0.35);
-  --logo-bg: #172238; /* color exacto del fondo del logo */
+  --logo-bg: #172238;
   --blue: #29406c;
   --blue-dark: #1a2a4a;
   --blue-darker: #0f1a30;
@@ -98,12 +98,10 @@ body::after {
 
 /* ══════════════════════════════
    LEFT PANEL
-   Fondo = mismo color del logo
-   para integración perfecta
 ══════════════════════════════ */
 .panel-left {
   flex: 1;
-  background: var(--logo-bg); /* #172238 — idéntico al fondo del PNG */
+  background: var(--logo-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -113,7 +111,6 @@ body::after {
   overflow: hidden;
 }
 
-/* Sutil viñeta en bordes para dar profundidad */
 .panel-left::before {
   content: "";
   position: absolute;
@@ -138,10 +135,9 @@ body::after {
 }
 
 .logo-area img {
-  width: 310px; /* grande y notorio */
+  width: 310px;
   height: 310px;
   object-fit: contain;
-  /* sin background extra — se funde con el panel */
   filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.5)) brightness(1.06)
     saturate(1.1);
   transition: transform 0.4s ease;
@@ -173,7 +169,7 @@ body::after {
 }
 
 /* ══════════════════════════════
-   RIGHT PANEL — formulario
+   RIGHT PANEL
 ══════════════════════════════ */
 .panel-right {
   flex: 1.1;
@@ -230,45 +226,82 @@ body::after {
   margin-bottom: 8px;
 }
 
+/* ── FIX: field-wrap como flex para alojar el botón ojo ── */
 .field-wrap {
   position: relative;
-}
-
-.field-wrap svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: rgba(160, 174, 192, 0.5);
-  pointer-events: none;
-}
-
-.field input {
-  width: 100%;
+  display: flex;
+  align-items: center;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 10px;
-  padding: 13px 16px 13px 42px;
-  font-family: "Nunito", sans-serif;
-  font-size: 14px;
-  color: var(--white);
-  outline: none;
   transition:
     border-color 0.2s,
     box-shadow 0.2s,
     background 0.2s;
 }
 
+/* FIX: el SVG del icono izquierdo ya no es absolute, es parte del flex */
+.field-wrap > svg:first-child {
+  position: static;
+  transform: none;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  margin-left: 14px;
+  color: rgba(160, 174, 192, 0.5);
+  stroke: rgba(160, 174, 192, 0.5);
+  pointer-events: none;
+}
+
+/* FIX: el input ocupa el espacio restante sin fondo propio */
+.field input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 13px 10px 13px 10px;
+  font-family: "Nunito", sans-serif;
+  font-size: 14px;
+  color: var(--white);
+  outline: none;
+  min-width: 0;
+}
+
 .field input::placeholder {
   color: rgba(255, 255, 255, 0.18);
 }
 
-.field input:focus {
+/* El focus ahora va en el wrapper, no en el input */
+.field-wrap:focus-within {
   border-color: rgba(76, 94, 26, 0.7);
   background: rgba(76, 94, 26, 0.06);
   box-shadow: 0 0 0 3px rgba(76, 94, 26, 0.18);
+}
+
+/* ── Botón ojo ── */
+.eye-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  color: rgba(160, 174, 192, 0.4);
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.eye-toggle:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.eye-toggle svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  pointer-events: none;
 }
 
 /* Button */
@@ -321,5 +354,15 @@ body::after {
   }
   .wrapper {
     min-height: auto;
+  }
+}
+
+/* ── Spinner del botón submit ── */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
