@@ -18,6 +18,7 @@
         <module>Services/fx-service</module>
         <module>Services/ai-risk-service</module>
         <module>Services/payment-service</module>
+        <module>Services/notification-service</module>
         <module>Services/user-service</module>
         <module>Services/web-ui</module>
     </modules>
