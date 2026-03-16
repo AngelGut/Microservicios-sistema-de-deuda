@@ -8,8 +8,11 @@ import java.math.BigDecimal;
  * <p>Solo se mapean los campos que payment-service necesita para sus validaciones.
  */
 public record DebtResponse(
-        Long id,
-        BigDecimal totalAmount,
-        BigDecimal remainingBalance,
+        String id,
+        String debtorId,
+        String description,
+        BigDecimal originalAmount,
+        BigDecimal currentBalance,
+        String currency,
         String status
 ) {}

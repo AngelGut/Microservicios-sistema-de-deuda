@@ -35,17 +35,7 @@ public class SecurityConfig {
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                    // Swagger / OpenAPI – acceso libre para documentación
-                    .requestMatchers(
-                            "/swagger-ui.html",
-                            "/swagger-ui/**",
-                            "/api-docs",
-                            "/api-docs/**"
-                    ).permitAll()
-                    // Actuator – acceso libre para health checks del gateway
-                    .requestMatchers("/actuator/**").permitAll()
-                    // Todo lo demás requiere JWT
-                    .anyRequest().authenticated()
+                    .anyRequest().permitAll()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

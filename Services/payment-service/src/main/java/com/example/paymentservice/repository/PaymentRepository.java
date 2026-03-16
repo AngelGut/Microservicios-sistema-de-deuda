@@ -22,12 +22,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
      * Devuelve todos los pagos asociados a una deuda específica,
      * ordenados del más reciente al más antiguo.
      */
-    List<Payment> findByDebtIdOrderByPaymentDateDesc(Long debtId);
+    List<Payment> findByDebtIdOrderByPaymentDateDesc(String debtId);
 
     /**
      * Calcula el total pagado para una deuda dada.
      * Retorna 0 si no hay pagos.
      */
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.debtId = :debtId")
-    BigDecimal sumAmountByDebtId(@Param("debtId") Long debtId);
+    BigDecimal sumAmountByDebtId(@Param("debtId") String debtId);
 }

@@ -1,13 +1,14 @@
 package com.debtmanager.webui.dto.response;
 
-/**
- * Respuesta del ai-risk-service.
- * GET /api/v1/ai/risk/debtor/{id}
- *
- * status: FIABLE | REVISION | BLOQUEADO | NO_DISPONIBLE
- */
+import java.util.List;
+
 public record AiRiskResponse(
         String status,
         String explanation,
-        Double confidence) {
+        Double confidence,
+        Double riskScore,
+        Integer totalDaysLate,
+        Integer latePaymentCount,
+        Integer paymentCount,
+        List<String> aiRecommendations) {
 }

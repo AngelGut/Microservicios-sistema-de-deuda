@@ -50,21 +50,28 @@ public class ReminderController {
             model.addAttribute("remindersJson", "[]");
         }
 
-        // Deudas activas para el selector del modal
+        // Deudas activas para el selector del modal Y para el calendario
+        List<DebtResponse> activas = new ArrayList<>();
         try {
-            List<DebtResponse> activas = debtService.getAll(token)
+            activas = debtService.getAll(token)
                     .stream()
-                    .filter(d -> "ACTIVA".equals(d.status()))
+                    .filter(d -> "ACTIVA".equals(d.status()) && d.dueDate() != null)
                     .toList();
             model.addAttribute("activeDebts", activas);
         } catch (Exception e) {
             model.addAttribute("activeDebts", new ArrayList<>());
         }
 
+        // JSON de deudas para el calendario (fechas de vencimiento)
+        try {
+            model.addAttribute("debtsJson", objectMapper.writeValueAsString(activas));
+        } catch (Exception e) {
+            model.addAttribute("debtsJson", "[]");
+        }
+
         return "reminders/list";
     }
 
-    // POST — cuando notification-service implemente creación de recordatorios
     @PostMapping
     public String create(@RequestParam String debtId,
             @RequestParam String description,

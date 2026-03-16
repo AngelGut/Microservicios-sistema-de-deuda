@@ -1,6 +1,7 @@
 package com.example.gateway.filter;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -11,61 +12,49 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-/**
- * TraceIdGlobalFilter
- * -------------------
- * Filtro global que garantiza que cada request tenga un X-Trace-Id.
- *
- * Comportamiento (idéntico al TraceIdFilter de common-lib pero para WebFlux):
- *   - Si el cliente envía X-Trace-Id → se reutiliza
- *   - Si NO viene → se genera uno nuevo
- *   - Se propaga al microservicio destino en el header del request
- *   - Se devuelve al cliente en el header del response
- *
- * Principio SRP: este filtro tiene una única responsabilidad — trazabilidad.
- * Principio OCP: extensible sin modificar — se puede agregar lógica sin tocar esto.
- */
-@Slf4j
 @Component
 public class TraceIdGlobalFilter implements GlobalFilter, Ordered {
 
-    /** Nombre del header de trazabilidad — igual que en common-lib (TraceIdUtil.TRACE_HEADER) */
-    public static final String TRACE_HEADER = "X-Trace-Id";
+    private static final Logger log = LoggerFactory.getLogger(TraceIdGlobalFilter.class);
+    private static final String TRACE_HEADER = "X-Trace-Id";
 
-    /**
-     * Intercepta cada request que pasa por el gateway.
-     * Añade o propaga el X-Trace-Id antes de enviarlo al servicio destino.
-     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-        ServerHttpRequest request = exchange.getRequest();
-
-        // Leemos el traceId entrante — si no existe, generamos uno nuevo
-        String incomingTraceId = request.getHeaders().getFirst(TRACE_HEADER);
-        String traceId = (incomingTraceId != null && !incomingTraceId.isBlank())
-                ? incomingTraceId.trim()
-                : UUID.randomUUID().toString().substring(0, 8);
+        // Reutilizar el X-Trace-Id entrante si ya existe,
+        // si no, generar uno nuevo de 8 caracteres
+        String traceId = exchange.getRequest().getHeaders().getFirst(TRACE_HEADER);
+        if (traceId == null || traceId.isBlank()) {
+            traceId = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        }
 
         log.debug("[Gateway] TraceId: {} → {}", TRACE_HEADER, traceId);
 
-        // Mutamos el request para añadir X-Trace-Id al microservicio destino
-        ServerHttpRequest mutatedRequest = request.mutate()
-                .header(TRACE_HEADER, traceId)
+        final String finalTraceId = traceId;
+
+        // Mutar el request para propagar el X-Trace-Id
+        // hacia el microservicio destino (fx-service, auth-service, etc.)
+        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                .header(TRACE_HEADER, finalTraceId)
                 .build();
 
-        // Propagamos también en el response al cliente
-        final String finalTraceId = traceId;
-        return chain.filter(exchange.mutate().request(mutatedRequest).build())
-                .then(Mono.fromRunnable(() ->
-                        exchange.getResponse().getHeaders().set(TRACE_HEADER, finalTraceId)
-                ));
+        // Construir el exchange mutado con el request modificado
+        ServerWebExchange mutatedExchange = exchange.mutate()
+                .request(mutatedRequest)
+                .response(exchange.getResponse())
+                .build();
+
+        // Ejecutar la cadena de filtros y, al terminar,
+        // añadir el X-Trace-Id también en el response
+        // Solo si el response aún no fue enviado (evita UnsupportedOperationException)
+        return chain.filter(mutatedExchange).then(Mono.fromRunnable(() -> {
+            if (!exchange.getResponse().isCommitted()) {
+                exchange.getResponse().getHeaders().add(TRACE_HEADER, finalTraceId);
+            }
+        }));
     }
 
-    /**
-     * Prioridad máxima — se ejecuta antes que cualquier otro filtro del gateway.
-     * Así el traceId está disponible en toda la cadena.
-     */
+    // Este filtro se ejecuta primero que cualquier otro (máxima prioridad)
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;

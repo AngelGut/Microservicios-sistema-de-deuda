@@ -348,7 +348,7 @@
             <polyline points="12 8 12 12 14 14" /></svg
           >Microservicios
         </a>
-        <a href="#" class="nav-item">
+        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -363,7 +363,7 @@
       <div class="sidebar-user">
         <div class="user-avatar">U</div>
         <div class="user-info">
-          <span class="user-name">Usuario</span>
+          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
           <span class="user-status"
             ><span class="status-dot"></span>JWT activo</span
           >
@@ -487,52 +487,7 @@
           <div class="service-desc">
             Spring Cloud Gateway · Enrutamiento + CORS + JWT filter
           </div>
-          <div class="service-tags">
-            <a
-              href="http://localhost:8080/swagger-ui.html"
-              target="_blank"
-              class="tag tag-swagger"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Swagger
-            </a>
-            <a
-              href="http://localhost:8080/actuator/health"
-              target="_blank"
-              class="tag tag-actuator"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                />
-              </svg>
-              Actuator
-            </a>
-          </div>
-          <div class="service-progress">
-            <div
-              class="service-progress-fill fill-unknown"
-              id="bar-gateway"
-              style="width: 0%"
-            ></div>
-          </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-gateway" style="width:8%"></div></div>
         </div>
 
         <!-- auth-service :8081 -->
@@ -546,52 +501,7 @@
             <span class="service-latency latency-unknown" id="lat-auth">—</span>
           </div>
           <div class="service-desc">JWT HS256 · BCrypt · Roles ADMIN/USER</div>
-          <div class="service-tags">
-            <a
-              href="http://localhost:8081/swagger-ui.html"
-              target="_blank"
-              class="tag tag-swagger"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Swagger
-            </a>
-            <a
-              href="http://localhost:8081/actuator/health"
-              target="_blank"
-              class="tag tag-actuator"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                />
-              </svg>
-              Actuator
-            </a>
-          </div>
-          <div class="service-progress">
-            <div
-              class="service-progress-fill fill-unknown"
-              id="bar-auth"
-              style="width: 0%"
-            ></div>
-          </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-auth" style="width:8%"></div></div>
         </div>
 
         <!-- debtor-service :8082 -->
@@ -609,52 +519,7 @@
           <div class="service-desc">
             CRUD Deudores · PERSONA/COMPAÑÍA · Cédula/RNC
           </div>
-          <div class="service-tags">
-            <a
-              href="http://localhost:8082/swagger-ui.html"
-              target="_blank"
-              class="tag tag-swagger"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Swagger
-            </a>
-            <a
-              href="http://localhost:8082/actuator/health"
-              target="_blank"
-              class="tag tag-actuator"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                />
-              </svg>
-              Actuator
-            </a>
-          </div>
-          <div class="service-progress">
-            <div
-              class="service-progress-fill fill-unknown"
-              id="bar-debtor"
-              style="width: 0%"
-            ></div>
-          </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-debtor" style="width:8%"></div></div>
         </div>
 
         <!-- debt-service :8083 -->
@@ -670,52 +535,7 @@
           <div class="service-desc">
             Deudas · Saldo automático · apply-payment endpoint
           </div>
-          <div class="service-tags">
-            <a
-              href="http://localhost:8083/swagger-ui.html"
-              target="_blank"
-              class="tag tag-swagger"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Swagger
-            </a>
-            <a
-              href="http://localhost:8083/actuator/health"
-              target="_blank"
-              class="tag tag-actuator"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                />
-              </svg>
-              Actuator
-            </a>
-          </div>
-          <div class="service-progress">
-            <div
-              class="service-progress-fill fill-unknown"
-              id="bar-debt"
-              style="width: 0%"
-            ></div>
-          </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-debt" style="width:8%"></div></div>
         </div>
 
         <!-- payment-service :8084 -->
@@ -733,65 +553,7 @@
           <div class="service-desc">
             Pagos Parciales · Resilience4j CB+Retry+Timeout
           </div>
-          <div class="service-tags">
-            <a
-              href="http://localhost:8084/swagger-ui.html"
-              target="_blank"
-              class="tag tag-swagger"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Swagger
-            </a>
-            <a
-              href="http://localhost:8084/actuator/health"
-              target="_blank"
-              class="tag tag-actuator"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                />
-              </svg>
-              Actuator
-            </a>
-            <span class="tag tag-green">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
-              Resilience4j
-            </span>
-          </div>
-          <div class="service-progress">
-            <div
-              class="service-progress-fill fill-unknown"
-              id="bar-payment"
-              style="width: 0%"
-            ></div>
-          </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-payment" style="width:8%"></div></div>
         </div>
 
         <!-- fx-service :8085 -->
@@ -807,66 +569,7 @@
           <div class="service-desc">
             Tasa USD/DOP · @Cacheable 30min · exchangeratesapi
           </div>
-          <div class="service-tags">
-            <a
-              href="http://localhost:8085/swagger-ui.html"
-              target="_blank"
-              class="tag tag-swagger"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Swagger
-            </a>
-            <a
-              href="http://localhost:8085/actuator/health"
-              target="_blank"
-              class="tag tag-actuator"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                />
-              </svg>
-              Actuator
-            </a>
-            <span class="tag tag-orange">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              @Cacheable
-            </span>
-          </div>
-          <div class="service-progress">
-            <div
-              class="service-progress-fill fill-unknown"
-              id="bar-fx"
-              style="width: 0%"
-            ></div>
-          </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-fx" style="width:8%"></div></div>
         </div>
 
         <!-- notification-service :8086 -->
@@ -884,52 +587,7 @@
           <div class="service-desc">
             Email SendGrid/Mailgun · Scheduler · Outbox Pattern
           </div>
-          <div class="service-tags">
-            <a
-              href="http://localhost:8086/swagger-ui.html"
-              target="_blank"
-              class="tag tag-swagger"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Swagger
-            </a>
-            <a
-              href="http://localhost:8086/actuator/health"
-              target="_blank"
-              class="tag tag-actuator"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                />
-              </svg>
-              Actuator
-            </a>
-          </div>
-          <div class="service-progress">
-            <div
-              class="service-progress-fill fill-unknown"
-              id="bar-notification"
-              style="width: 0%"
-            ></div>
-          </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-notification" style="width:8%"></div></div>
         </div>
 
         <!-- ai-risk-service :8087 -->
@@ -945,72 +603,12 @@
           <div class="service-desc">
             Groq API · llama3-8b · FIABLE/REVISIÓN/BLOQUEADO
           </div>
-          <div class="service-tags">
-            <a
-              href="http://localhost:8087/swagger-ui.html"
-              target="_blank"
-              class="tag tag-swagger"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-              Swagger
-            </a>
-            <a
-              href="http://localhost:8087/actuator/health"
-              target="_blank"
-              class="tag tag-actuator"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                />
-              </svg>
-              Actuator
-            </a>
-            <span class="tag tag-purple">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                width="10"
-                height="10"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              Groq API
-            </span>
-          </div>
-          <div class="service-progress">
-            <div
-              class="service-progress-fill fill-unknown"
-              id="bar-ai"
-              style="width: 0%"
-            ></div>
-          </div>
+          <div class="service-progress"><div class="service-progress-fill fill-down" id="bar-ai" style="width:8%"></div></div>
         </div>
       </div>
     </main>
 
-    <script>
+    <script th:inline="javascript">
       function toggleSidebar() {
         document.getElementById("sidebar").classList.toggle("open");
         document.getElementById("sidebarOverlay").classList.toggle("open");
@@ -1021,67 +619,55 @@
           key: "gateway",
           name: "api-gateway",
           port: 8080,
-          url: "http://localhost:8080/actuator/health",
+          url: /*[[${gatewayHealthUrl}]]*/ "https://gateway-production-a233.up.railway.app/actuator/health",
         },
         {
           key: "auth",
           name: "auth-service",
           port: 8081,
-          url: "http://localhost:8081/actuator/health",
+          url: /*[[${authHealthUrl}]]*/ "https://auth-service-production-8f2a.up.railway.app/actuator/health",
         },
         {
           key: "debtor",
           name: "debtor-service",
           port: 8082,
-          url: "http://localhost:8082/actuator/health",
+          url: /*[[${debtorHealthUrl}]]*/ "https://debtor-service-production.up.railway.app/actuator/health",
         },
         {
           key: "debt",
           name: "debt-service",
           port: 8083,
-          url: "http://localhost:8083/actuator/health",
+          url: /*[[${debtHealthUrl}]]*/ "https://debt-service-production.up.railway.app/actuator/health",
         },
         {
           key: "payment",
           name: "payment-service",
           port: 8084,
-          url: "http://localhost:8084/actuator/health",
+          url: /*[[${paymentHealthUrl}]]*/ "https://payment-service-production.up.railway.app/actuator/health",
         },
         {
           key: "fx",
           name: "fx-service",
           port: 8085,
-          url: "http://localhost:8085/actuator/health",
+          url: /*[[${fxHealthUrl}]]*/ "https://fx-service-production.up.railway.app/actuator/health",
         },
         {
           key: "notification",
           name: "notification-service",
           port: 8086,
-          url: "http://localhost:8086/actuator/health",
+          url: "https://notification-service-production.up.railway.app/actuator/health",
         },
         {
           key: "ai",
           name: "ai-risk-service",
           port: 8087,
-          url: "http://localhost:8087/actuator/health",
+          url: /*[[${aiRiskHealthUrl}]]*/ "https://ai-risk-service-production.up.railway.app/actuator/health",
         },
       ];
 
       async function checkService(svc) {
-        const start = Date.now();
-        try {
-          const res = await fetch(svc.url, {
-            signal: AbortSignal.timeout(4000),
-          });
-          const latency = Date.now() - start;
-          const data = await res.json().catch(() => ({}));
-          const isUp =
-            res.ok && (data.status === "UP" || data.status === undefined);
-          const isSlow = isUp && latency > 500;
-          return { status: isSlow ? "slow" : isUp ? "up" : "down", latency };
-        } catch {
-          return { status: "down", latency: null };
-        }
+        // No usado directamente — los checks los hace el backend
+        return { status: "down", latency: null };
       }
 
       function applyStatus(key, status, latency) {
@@ -1121,22 +707,26 @@
           "Verificando servicios…";
         document.getElementById("summaryDot").className = "summary-dot";
 
-        const results = await Promise.all(SERVICES.map((s) => checkService(s)));
+        try {
+          const res = await fetch("/microservices/health");
+          const data = await res.json();
 
-        let upCount = 0;
-        results.forEach((r, i) => {
-          applyStatus(SERVICES[i].key, r.status, r.latency);
-          if (r.status === "up" || r.status === "slow") upCount++;
-        });
+          SERVICES.forEach((svc) => {
+            const r = data[svc.key];
+            if (r) applyStatus(svc.key, r.status, r.latency >= 0 ? r.latency : null);
+          });
 
-        const total = SERVICES.length;
-        const allUp = upCount === total;
-        const dot = document.getElementById("summaryDot");
-        const txt = document.getElementById("summaryText");
-
-        dot.className = "summary-dot" + (allUp ? "" : " warn");
-        txt.className = "summary-text" + (allUp ? "" : " warn");
-        txt.textContent = upCount + "/" + total + " servicios activos";
+          const upCount = data.upCount || 0;
+          const total = data.total || SERVICES.length;
+          const allUp = upCount === total;
+          const dot = document.getElementById("summaryDot");
+          const txt = document.getElementById("summaryText");
+          dot.className = "summary-dot" + (allUp ? "" : " warn");
+          txt.className = "summary-text" + (allUp ? "" : " warn");
+          txt.textContent = upCount + "/" + total + " servicios activos";
+        } catch (e) {
+          document.getElementById("summaryText").textContent = "Error al verificar servicios";
+        }
 
         btn.classList.remove("spinning");
         btn.disabled = false;

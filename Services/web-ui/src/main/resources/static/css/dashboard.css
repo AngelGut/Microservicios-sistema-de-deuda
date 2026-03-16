@@ -345,7 +345,7 @@ body {
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 20px;
   margin-bottom: 20px;
 }
 
@@ -973,8 +973,8 @@ body {
    RESPONSIVE
 ══════════════════════════════ */
 
-/* Tablet (hasta 1100px) */
-@media (max-width: 1100px) {
+/* Tablet (hasta 1400px) */
+@media (max-width: 1400px) {
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }

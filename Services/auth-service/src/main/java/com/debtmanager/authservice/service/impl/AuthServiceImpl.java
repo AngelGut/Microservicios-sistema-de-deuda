@@ -13,7 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementación de la lógica del microservicio de autenticación.
+ * Implementación del servicio de autenticación.
+ * Valida credenciales directamente contra la base de datos local del auth-service.
  */
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -33,21 +34,12 @@ public class AuthServiceImpl implements AuthService {
         this.jwtValidator = jwtValidator;
     }
 
-    /**
-     * Realiza el proceso de login:
-     * 1. busca usuario
-     * 2. valida que esté habilitado
-     * 3. compara contraseña
-     * 4. genera JWT
-     */
     @Override
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmailAndEnabledTrue(request.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Credenciales inválidas."));
 
-        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
-
-        if (!passwordMatches) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Credenciales inválidas.");
         }
 
@@ -64,9 +56,6 @@ public class AuthServiceImpl implements AuthService {
                 user.getEmail());
     }
 
-    /**
-     * Valida un token ya emitido.
-     */
     @Override
     public TokenValidationResponse validateToken(String token) {
         return jwtValidator.validate(token);

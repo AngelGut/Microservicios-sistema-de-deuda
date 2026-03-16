@@ -22,9 +22,12 @@ public class Debtor {
     @Column(nullable = false, unique = true, length = 50)
     private String document;
 
-    @Column(nullable = false, unique = true, length = 120)
+    @Column(length = 120)
     private String email;
 
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private String type;
+
+    @Column(length = 20)
+    private String phone;
 }
