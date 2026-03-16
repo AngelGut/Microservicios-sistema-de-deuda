@@ -19,9 +19,9 @@ CMD ["sh", "-c", "java \
   -Dapp.debtor-service.base-url=${DEBTOR_SERVICE_URL:-http://debtor-service:8086} \
   -Dspring.mail.host=${MAIL_HOST:-smtp.gmail.com} \
   -Dspring.mail.port=${MAIL_PORT:-587} \
-  -Dspring.mail.username=${MAIL_USERNAME:} \
-  -Dspring.mail.password=${MAIL_PASSWORD:} \
-  -Dapp.mail.from=${MAIL_FROM:-Sistema de Deudas <noreply@tusistema.com>} \
+  -Dspring.mail.username=${MAIL_USERNAME:-} \
+  -Dspring.mail.password=${MAIL_PASSWORD:-} \
+  -Dapp.mail.from=${MAIL_FROM:-Sistema de Deudas} \
   -Dspring.profiles.active=${SPRING_PROFILE:-default} \
   -XX:+UseG1GC \
   -XX:MaxRAMPercentage=75.0 \
