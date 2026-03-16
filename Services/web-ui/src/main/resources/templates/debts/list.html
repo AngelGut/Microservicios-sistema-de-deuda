@@ -436,7 +436,11 @@
             <polyline points="12 8 12 12 14 14" /></svg
           >Microservicios
         </a>
-        <a href="https://gateway-production-a233.up.railway.app/swagger-ui.html" target="_blank" class="nav-item">
+        <a
+          href="https://gateway-production-a233.up.railway.app/swagger-ui.html"
+          target="_blank"
+          class="nav-item"
+        >
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -451,7 +455,11 @@
       <div class="sidebar-user">
         <div class="user-avatar">U</div>
         <div class="user-info">
-          <span class="user-name" th:text="${session.userDisplayName ?: 'Usuario'}">Usuario</span>
+          <span
+            class="user-name"
+            th:text="${session.userDisplayName ?: 'Usuario'}"
+            >Usuario</span
+          >
           <span class="user-status"
             ><span class="status-dot"></span>JWT activo</span
           >
@@ -643,7 +651,7 @@
               </td>
               <td
                 class="amount-original"
-                th:text="'RD$' + ${#numbers.formatDecimal(debt.originalAmount, 0, 'COMMA', 0, 'POINT')}"
+                th:text="${debt.currency == 'USD' ? 'US$' : 'RD$'} + ${#numbers.formatDecimal(debt.originalAmount, 0, 'COMMA', 2, 'POINT')}"
               >
                 RD$0
               </td>
@@ -787,7 +795,10 @@
         <div class="table-footer">
           <span id="countLabel"
             >Mostrando
-            <strong th:text="${debts != null ? #lists.size(debts) : 0}">0</strong> deudas</span
+            <strong th:text="${debts != null ? #lists.size(debts) : 0}"
+              >0</strong
+            >
+            deudas</span
           >
         </div>
       </div>
